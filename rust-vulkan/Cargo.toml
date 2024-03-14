@@ -1,0 +1,23 @@
+[package]
+name = "rust-vulkan"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.81"
+pretty_env_logger = "0.5.0"
+softbuffer = "0.4.1"
+thiserror = "1.0.58"
+winit = "0.29.15"
+
+[[bin]]
+
+name = "00_base_window"
+path = "src/00_base_window.rs"
+
+[[bin]]
+
+name = "00_base_vulkan_framework"
+path = "src/00_base_vulkan_framework.rs"
