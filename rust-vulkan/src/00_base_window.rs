@@ -4,8 +4,7 @@
     clippy::too_many_arguments,
     clippy::unnecessary_wraps
 )]
-use anyhow::{Context, Result};
-use softbuffer;
+use anyhow::{Result};
 use std::num::NonZeroU32;
 use std::sync::Arc;
 use winit::{
@@ -22,8 +21,8 @@ fn main() -> Result<()> {
 
     // 初始化应用程序
 
-    let mut app = unsafe { App::create(&window)? };
-    let mut destroying = false;
+    let app = unsafe { App::create(&window)? };
+    let destroying = false;
 
     event_loop
         .run(move |event, elwt| {
