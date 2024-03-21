@@ -39,9 +39,9 @@ fn main() -> Result<()> {
     // 创建一个windowbuilder对象，builder对象一般用来存储一些配置信息，然后调用build函数，传入event_loop对象，绑定窗口对象和事件循环对象
     let window = Arc::new(WindowBuilder::new().build(&event_loop).unwrap());
     // 调用new函数创建一个软渲染context，将window窗口对象的克隆作为参数传入，原因为在context内部可能会需要用到窗口对象的所有权
-    let context = softbuffer::Context::new(window.clone()).unwrap();
+    // let context = softbuffer::Context::new(window.clone()).unwrap();
     // 创建一个软渲染表面对象，也就是surface对象，传入context和window对象的克隆作为参数
-    let surface = softbuffer::Surface::new(&context, window.clone()).unwrap();
+    // let surface = softbuffer::Surface::new(&context, window.clone()).unwrap();
 
     // 创建vulkan实例对象，传入window对象的克隆作为参数
     let mut app = unsafe { App::create(&window)? };
