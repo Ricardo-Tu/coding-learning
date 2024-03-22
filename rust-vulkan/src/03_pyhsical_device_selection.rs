@@ -7,7 +7,9 @@
 
 use anyhow::{anyhow, Result};
 use log::*;
+use pretty_env_logger::env_logger;
 use std::{collections::HashSet, ffi::CStr, os::raw::c_void, sync::Arc};
+use thiserror::Error;
 use vulkanalia::{
     loader::{LibloadingLoader, LIBRARY},
     prelude::v1_0::*,
@@ -26,7 +28,7 @@ const VALIDATION_LAYER: vk::ExtensionName =
 const PORTABILITY_MACOS_VERSION: Version = Version::new(1, 3, 216);
 
 fn main() -> Result<()> {
-    pretty_env_logger::init();
+    env_logger::init();
     let event_loop = EventLoop::new().unwrap();
     let window = Arc::new(WindowBuilder::new().build(&event_loop).unwrap());
     let mut app = unsafe { App::create(&window)? };
@@ -38,13 +40,13 @@ fn main() -> Result<()> {
                 Event::WindowEvent {
                     window_id,
                     event: WindowEvent::RedrawRequested,
-                } if window_id == window.id() => {
+                } if window_id == window.id() && !destroying => {
                     unsafe { app.render(&window) }.unwrap();
                 }
                 Event::WindowEvent {
                     window_id,
                     event: WindowEvent::CloseRequested,
-                } if window_id == window.id() => {
+                } if window_id == window.id() && !destroying => {
                     destroying = true;
                     unsafe { app.destroy() };
                     elwt.exit();
@@ -53,9 +55,10 @@ fn main() -> Result<()> {
             }
         })
         .unwrap();
-    Ok(())
+    return Ok(());
 }
 
+#[derive(Clone, Debug)]
 struct App {
     entry: Entry,
     instance: Instance,
@@ -66,13 +69,15 @@ impl App {
     unsafe fn create(window: &Window) -> Result<Self> {
         let loader = LibloadingLoader::new(LIBRARY)?;
         let entry = Entry::new(loader).map_err(|e| anyhow!("{}", e))?;
-        let data = AppData::default();
-        let instance = create_instance(window, &entry, &data)?;
-        Ok(Self {
+        let mut data = AppData::default();
+        let instance = create_instance(window, &entry, &mut data)?;
+        data.surface = vk_window::create_surface(&instance, &window, &window)?;
+        pick_physical_device(&instance, &mut data)?;
+        return Ok(Self {
             entry,
             instance,
             data,
-        })
+        });
     }
 
     unsafe fn render(&mut self, window: &Window) -> Result<()> {
@@ -90,12 +95,20 @@ impl App {
 
 #[derive(Clone, Debug, Default)]
 struct AppData {
+    // debug messenger
     messenger: vk::DebugUtilsMessengerEXT,
+    // surface
+    surface: vk::SurfaceKHR,
+    // physical device logical device
+    physical: vk::PhysicalDevice,
+    graphics_queue: vk::Queue,
+    present_queue: vk::Queue,
 }
 
-unsafe fn create_instance(window: &Window, entry: &Entry, data: &AppData) -> Result<Instance> {
+unsafe fn create_instance(window: &Window, entry: &Entry, data: &mut AppData) -> Result<Instance> {
     let application_info = vk::ApplicationInfo::builder()
         .application_name(b"rust application \0")
+        .application_version(vk::make_version(1, 0, 0))
         .engine_name(b"No Engine\0")
         .engine_version(vk::make_version(1, 0, 0))
         .api_version(vk::make_version(1, 0, 0));
@@ -149,10 +162,14 @@ unsafe fn create_instance(window: &Window, entry: &Entry, data: &AppData) -> Res
         .user_callback(Some(debug_callback));
 
     if VALIDATION_ENABLED {
-        info.push_next(&mut debug_info);
+        info = info.push_next(&mut debug_info);
     }
     let instance = entry.create_instance(&info, None)?;
-    Ok(instance)
+
+    if VALIDATION_ENABLED {
+        data.messenger = instance.create_debug_utils_messenger_ext(&debug_info, None)?;
+    }
+    return Ok(instance);
 }
 
 unsafe extern "system" fn debug_callback(
@@ -173,5 +190,62 @@ unsafe extern "system" fn debug_callback(
         trace!("({:?}) {}", _type, message);
     }
 
-    vk::FALSE
+    return vk::FALSE;
+}
+
+#[derive(Debug, Clone, Error)]
+#[error("{0}")]
+pub struct SuitabilityError(pub &'static str);
+
+unsafe fn pick_physical_device(instance: &Instance, data: &mut AppData) -> Result<()> {
+    for physical_device in instance.enumerate_physical_devices()? {
+        let properties = instance.get_physical_device_properties(physical_device);
+
+        if let Err(error) = check_physical_device(instance, data, physical_device) {
+            error!(
+                "skip physical device ('{}'): {}",
+                properties.device_name, error
+            );
+        } else {
+            warn!("Select physical device('{}'): ", properties.device_name);
+            data.physical = physical_device;
+            return Ok(());
+        }
+    }
+    return Err(anyhow!(SuitabilityError(
+        "No suitable physical device found"
+    )));
+}
+
+unsafe fn check_physical_device(
+    instance: &Instance,
+    data: &mut AppData,
+    physical_device: vk::PhysicalDevice,
+) -> Result<()> {
+    return Ok(());
+}
+
+#[derive(Copy, Clone, Debug)]
+struct QueueFamilyIndexes {
+    graphic: u32,
+}
+
+impl QueueFamilyIndexes {
+    unsafe fn get(
+        instance: &Instance,
+        window: &Window,
+        physical_device: vk::PhysicalDevice,
+    ) -> Result<Self> {
+        let properties = instance.get_physical_device_queue_family_properties(physical_device);
+        let graphics = properties
+            .iter()
+            .position(|p| p.queue_flags.contains(vk::QueueFlags::GRAPHICS));
+        if let Some(graphics) = graphics {
+            return Ok(Self {
+                graphic: graphics as u32,
+            });
+        } else {
+            return Err(anyhow!(SuitabilityError("No suitable queue family found")));
+        }
+    }
 }
