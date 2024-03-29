@@ -8,12 +8,17 @@
 use anyhow::{anyhow, Result};
 use log::*;
 use pretty_env_logger::env_logger;
-use std::{collections::HashSet, ffi::CStr, os::raw::c_void, sync::Arc};
+use std::{
+    collections::HashSet,
+    ffi::CStr,
+    os::{raw::c_void, unix::raw::gid_t},
+    sync::Arc,
+};
 use thiserror::Error;
 use vulkanalia::{
     loader::{LibloadingLoader, LIBRARY},
     prelude::v1_0::*,
-    vk::ExtDebugUtilsExtension,
+    vk::{ExtDebugUtilsExtension, KHR_16BIT_STORAGE_EXTENSION},
     window as vk_window, Version,
 };
 use winit::{
@@ -72,8 +77,11 @@ impl App {
         let entry = Entry::new(loader).map_err(|e| anyhow!("{}", e))?;
         let mut data = AppData::default();
         let instance = create_instance(&window, &entry, &mut data)?;
-        pick_physical_device(&instance, &mut data)?;
+        if pick_physical_device(&instance, &mut data).is_err() {
+            error!("No suitable physical device found");
+        }
         let device = create_logical_device(&entry, &instance, &mut data)?;
+        data.surface = vk_window::create_surface(&instance, &window, window)?;
         return Ok(Self {
             entry,
             instance,
@@ -89,7 +97,6 @@ impl App {
             self.instance
                 .destroy_debug_utils_messenger_ext(self.data.messenger, None);
         }
-        self.device.destroy_device(None);
         self.instance.destroy_instance(None);
     }
 }
@@ -97,8 +104,10 @@ impl App {
 #[derive(Clone, Debug, Default)]
 struct AppData {
     messenger: vk::DebugUtilsMessengerEXT,
+    surface: vk::SurfaceKHR,
     physical: vk::PhysicalDevice,
     graphics_queue: vk::Queue,
+    present_queue: vk::Queue,
 }
 
 unsafe fn create_instance(window: &Window, entry: &Entry, data: &mut AppData) -> Result<Instance> {
@@ -225,6 +234,7 @@ unsafe fn create_logical_device(
         .queue_priorities(queue_priorities);
 
     // layers
+
     let layers = if VALIDATION_ENABLED {
         vec![VALIDATION_LAYER.as_ptr()]
     } else {
@@ -259,6 +269,7 @@ unsafe fn check_physical_device(
     physical_device: vk::PhysicalDevice,
 ) -> Result<()> {
     QueueFamilyIndexes::get(&instance, &data, physical_device)?;
+
     return Ok(());
 }
 
