@@ -1,0 +1,23 @@
+macro(CopyDLL target_name)
+    if(WIN32)
+        add_custom_command(
+            TARGET ${target_name} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy ${SDL2_ROOT} /lib/x64/SDL2.dll $<TARGET_FILE_DIR:${target_name}>)
+    elseif()
+endmacro(CopyDLL)
+
+macro(CopyShader target_name)
+    add_custom_command(
+        TARGET ${target_name} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/vert.spv $<TARGET_FILE_DIR:${target_name}>)
+    add_custom_command(
+        TARGET ${target_name} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/frag.spv $<TARGET_FILE_DIR:${target_name}>)
+endmacro(CopyShader)
+
+macro(CopyTexture target_name)
+    add_custom_command(
+        TARGET ${target_name} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/resources $<TARGET_FRILE_DIR:${target_name}>/resources)
+endmacro(CopyTexture)
+                
