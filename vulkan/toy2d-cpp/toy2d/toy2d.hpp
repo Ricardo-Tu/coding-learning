@@ -4,6 +4,6 @@
 
 namespace toy2d
 {
-    void Init();
+    void Init(std::vector<const char *> extensions, std::function<vk::SurfaceKHR(vk::Instance)> retsurface);
     void Quit();
 }

@@ -1,0 +1,4 @@
+/.vscode/
+/rust-vulkan/.vscode
+/vulkan/.vscode
+/vulkan/toy2d-cpp/.vscode
