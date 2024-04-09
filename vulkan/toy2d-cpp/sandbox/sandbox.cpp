@@ -30,10 +30,12 @@ int main(int argc, char *argv[])
     SDL_Vulkan_GetInstanceExtensions(window, &count, nullptr);
     std::vector<const char *> extensions(count);
     SDL_Vulkan_GetInstanceExtensions(window, &count, extensions.data());
-    toy2d::Init(extensions, [&](vk::Instance instance) -> vk::SurfaceKHR
-                { vk::SurfaceKHR surface;
+    toy2d::Init(
+        extensions, [&](vk::Instance instance) -> vk::SurfaceKHR
+        { vk::SurfaceKHR surface;
                   SDL_Vulkan_CreateSurface(window, instance, (VkSurfaceKHR*)&surface);
-                  return surface; });
+                  return surface; },
+        1024, 720);
 
     while (!shouldClose)
     {

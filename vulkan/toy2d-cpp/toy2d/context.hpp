@@ -6,6 +6,8 @@
 #include <vector>
 #include <array>
 #include <vulkan/vulkan.hpp>
+#include <algorithm>
+#include "swapchain.hpp"
 
 namespace toy2d
 {
@@ -27,10 +29,12 @@ namespace toy2d
         vk::Instance CreateInstance(std::vector<const char *> extensions);
         vk::PhysicalDevice PickupPhysicalDevice();
         vk::Device CreateLogicalDevice();
-        static void Init(std::vector<const char *> extensions, std::function<vk::SurfaceKHR(vk::Instance)> retsurface);
+        std::unique_ptr<Swapchain> swapchain;
+        static void Init(std::vector<const char *> extensions, std::function<vk::SurfaceKHR(vk::Instance)> retsurface, int width, int height);
         static void Quit();
         static Context &GetInstance();
         void QueryQueueFamilyIndexes();
+        void InitSwapchain(int width, int height);
         ~Context();
 
     private:

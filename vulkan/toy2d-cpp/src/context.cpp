@@ -2,15 +2,16 @@
 
 namespace toy2d
 {
-    std::unique_ptr<Context> Context::instance_ = nullptr;
-    void Context::Init(std::vector<const char *> extensions, std::function<vk::SurfaceKHR(vk::Instance)> retsurface)
+    std::unique_ptr<Context > Context::instance_ = nullptr;
+    void Context::Init(std::vector<const char *> extensions, std::function<vk::SurfaceKHR(vk::Instance)> retsurface, int width, int height)
     {
-        Context::instance_.reset(new Context(extensions, retsurface));
+        Context::instance_ = new Context(extensions, retsurface);
+        // Context::GetInstance().InitSwapchain(width, height);
     }
 
     void Context::Quit()
     {
-        instance_.reset();
+        delete instance_;
     }
 
     Context &Context::GetInstance()
@@ -78,16 +79,32 @@ namespace toy2d
     vk::Device Context::CreateLogicalDevice()
     {
         vk::DeviceCreateInfo devicecreateinfo;
+        std::array deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
         QueryQueueFamilyIndexes();
         float priority = 1.0f;
         std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
         vk::DeviceQueueCreateInfo queueCreateInfo;
-        queueCreateInfo.setQueueFamilyIndex(queueInfo.graphicsFamilyIndex.value())
-            .setQueueCount(1)
-            .setPQueuePriorities(&priority);
-        queueCreateInfos.push_back(queueCreateInfo);
+        if (queueInfo.graphicsFamilyIndex.value() == queueInfo.presentFamilyIndex.value())
+        {
+            queueCreateInfo.setQueueFamilyIndex(queueInfo.graphicsFamilyIndex.value())
+                .setQueueCount(1)
+                .setPQueuePriorities(&priority);
+            queueCreateInfos.push_back(queueCreateInfo);
+        }
+        else
+        {
+            queueCreateInfo.setQueueFamilyIndex(queueInfo.graphicsFamilyIndex.value())
+                .setQueueCount(1)
+                .setPQueuePriorities(&priority);
+            queueCreateInfos.push_back(queueCreateInfo);
+            queueCreateInfo.setQueueFamilyIndex(queueInfo.presentFamilyIndex.value())
+                .setQueueCount(1)
+                .setPQueuePriorities(&priority);
+            queueCreateInfos.push_back(queueCreateInfo);
+        }
         devicecreateinfo.setPQueueCreateInfos(queueCreateInfos.data())
-            .setQueueCreateInfoCount(queueCreateInfos.size());
+            .setQueueCreateInfoCount(queueCreateInfos.size())
+            .setPEnabledExtensionNames(deviceExtensions);
         return physicalDevice.createDevice(devicecreateinfo);
     }
 
@@ -108,6 +125,11 @@ namespace toy2d
                 break;
             }
         }
+    }
+
+    void Context::InitSwapchain(int width, int height)
+    {
+        swapchain.reset(new Swapchain(width, height));
     }
 
     Context::Context(std::vector<const char *> extensions,
@@ -133,6 +155,8 @@ namespace toy2d
 
     Context::~Context()
     {
+        Context::GetInstance().swapchain.reset();
+        instance.destroySurfaceKHR(surface);
         logicaldevice.destroy();
         instance.destroy();
     }
