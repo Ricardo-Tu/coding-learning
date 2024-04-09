@@ -1,5 +1,6 @@
 /.vscode/
 /rust-vulkan/.vscode
+/vulkan/toy2d-cpp/build
 /vulkan/.vscode
 /vulkan/toy2d-cpp/.vscode
 /rust-vulkan/target
