@@ -5,13 +5,13 @@ namespace toy2d
     std::unique_ptr<Context > Context::instance_ = nullptr;
     void Context::Init(std::vector<const char *> extensions, std::function<vk::SurfaceKHR(vk::Instance)> retsurface, int width, int height)
     {
-        Context::instance_ = new Context(extensions, retsurface);
-        // Context::GetInstance().InitSwapchain(width, height);
+        Context::instance_.reset(new Context(extensions, retsurface));
+        Context::GetInstance().InitSwapchain(width, height);
     }
 
     void Context::Quit()
     {
-        delete instance_;
+        instance_.release();
     }
 
     Context &Context::GetInstance()

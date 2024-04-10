@@ -67,6 +67,37 @@ namespace toy2d
 
     Swapchain::~Swapchain()
     {
+        for (auto &view : imageviews)
+            Context::GetInstance().logicaldevice.destroyImageView(imageviews);
+
         Context::GetInstance().logicaldevice.destroySwapchainKHR(swapchain);
+    }
+
+    void Swapchain::getImages()
+    {
+        images = Context::GetInstance().logicaldevice.getSwapchainImagesKHR(swapchain);
+    }
+
+    void Swapchain::createimageViews()
+    {
+        imageviews.resize(images.size());
+        for (int i = 0; i < images.size(); i++)
+        {
+            vk::ImageViewCreateInfo ivcreateinfo;
+            vk::ComponentMapping mapping;
+            vk::ImageSubresourceRange range;
+            range.setBaseMipLevel(0)
+                .setLevelCount(1)
+                .setBaseArrayLayer(0)
+                .setLayerCount(1)
+                .setAspectMask(vk::ImageAspectFlagBits::eColor);
+
+            ivcreateinfo.setImage(images[i])
+                .setViewType(vk::ImageViewType::e2D)
+                .setComponents(mapping)
+                .setFormat(info.format.format)
+                .setSubresourceRange(range);
+            imageviews[i] = Context::GetInstance().logicaldevice.createImageView(ivcreateinfo);
+        }
     }
 }

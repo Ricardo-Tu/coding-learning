@@ -3,7 +3,7 @@
 
 namespace toy2d
 {
-    class Swapchain 
+    class Swapchain
     {
     public:
         vk::SwapchainKHR swapchain;
@@ -18,6 +18,11 @@ namespace toy2d
             vk::PresentModeKHR presentMode;
         };
         SwapchainInfo info;
+        std::vector<vk::Image> images;
+        std::vector<vk::ImageView> imageviews;
+
         void queryInfo(int width, int height);
+        void getImages();
+        void createimageViews();
     };
 }
