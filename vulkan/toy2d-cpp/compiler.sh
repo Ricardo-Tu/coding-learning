@@ -4,5 +4,6 @@ mkdir build
 cd build 
 cmake ..
 make -j$(nproc)
-./sandbox/sandbox
+cd ..
+./build/sandbox/sandbox
 cd ..

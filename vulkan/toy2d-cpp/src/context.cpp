@@ -1,12 +1,11 @@
 #include "../toy2d/context.hpp"
-
+#include "../toy2d/shader.hpp"
 namespace toy2d
 {
     std::unique_ptr<Context > Context::instance_ = nullptr;
-    void Context::Init(std::vector<const char *> extensions, std::function<vk::SurfaceKHR(vk::Instance)> retsurface, int width, int height)
+    void Context::Init(std::vector<const char *> extensions, std::function<vk::SurfaceKHR(vk::Instance)> retsurface)
     {
         Context::instance_.reset(new Context(extensions, retsurface));
-        Context::GetInstance().InitSwapchain(width, height);
     }
 
     void Context::Quit()

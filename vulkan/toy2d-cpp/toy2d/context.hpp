@@ -30,7 +30,7 @@ namespace toy2d
         vk::PhysicalDevice PickupPhysicalDevice();
         vk::Device CreateLogicalDevice();
         std::unique_ptr<Swapchain> swapchain;
-        static void Init(std::vector<const char *> extensions, std::function<vk::SurfaceKHR(vk::Instance)> retsurface, int width, int height);
+        static void Init(std::vector<const char *> extensions, std::function<vk::SurfaceKHR(vk::Instance)> retsurface);
         static void Quit();
         static Context &GetInstance();
         void QueryQueueFamilyIndexes();
