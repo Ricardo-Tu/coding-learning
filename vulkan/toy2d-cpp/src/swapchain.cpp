@@ -68,7 +68,7 @@ namespace toy2d
     Swapchain::~Swapchain()
     {
         for (auto &view : imageviews)
-            Context::GetInstance().logicaldevice.destroyImageView(imageviews);
+            Context::GetInstance().logicaldevice.destroyImageView(view);
 
         Context::GetInstance().logicaldevice.destroySwapchainKHR(swapchain);
     }
