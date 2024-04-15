@@ -18,6 +18,15 @@ namespace toy2d
         return *instance_;
     }
 
+    void Shader::GetStage()
+    {
+        vk::PipelineShaderStageCreateInfo vertexStageInfo;
+        vertexStageInfo.setFlags(vk::PipelineShaderStageCreateFlags())
+            .setModule(vertexModule)
+            .setPName("main")
+            
+    }
+
     Shader::~Shader()
     {
         auto &device = Context::GetInstance().logicaldevice;

@@ -19,6 +19,7 @@ namespace toy2d
 
     private:
         Shader(const std::string &vertexShaderSource,const std::string &fragmentShaderSource);
+        void GetStage();
         static std::unique_ptr<Shader> instance_;
     };
 }
