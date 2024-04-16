@@ -6,6 +6,7 @@ namespace toy2d
     void Shader::Init(const std::string &vertexShaderSource, const std::string &fragmentShaderSource)
     {
         instance_.reset(new Shader(vertexShaderSource, fragmentShaderSource));
+        instance_->initStage();
     }
 
     void Shader::Quit()
@@ -15,16 +16,20 @@ namespace toy2d
 
     Shader &Shader::GetInstance()
     {
+        assert(instance_ != nullptr);
         return *instance_;
     }
 
-    void Shader::GetStage()
+    void Shader::initStage()
     {
-        vk::PipelineShaderStageCreateInfo vertexStageInfo;
-        vertexStageInfo.setFlags(vk::PipelineShaderStageCreateFlags())
-            .setModule(vertexModule)
-            .setPName("main")
-            
+        stage_.resize(2);
+        stage_[0].setStage(vk::ShaderStageFlagBits::eVertex).setModule(vertexModule).setPName("main");
+        stage_[1].setStage(vk::ShaderStageFlagBits::eFragment).setModule(fragmentModule).setPName("main");
+    }
+
+    std::vector<vk::PipelineShaderStageCreateInfo> Shader::GetStage()
+    {
+        return stage_;
     }
 
     Shader::~Shader()
@@ -38,11 +43,11 @@ namespace toy2d
     {
         vk::ShaderModuleCreateInfo createInfo;
         createInfo.codeSize = vertexShaderSource.size();
-        createInfo.pCode = reinterpret_cast<const uint32_t *>(vertexShaderSource.data());
+        createInfo.pCode = (uint32_t*)vertexShaderSource.data();
         vertexModule = Context::GetInstance().logicaldevice.createShaderModule(createInfo);
 
         createInfo.codeSize = fragmentShaderSource.size();
-        createInfo.pCode = reinterpret_cast<const uint32_t *>(fragmentShaderSource.data());
+        createInfo.pCode = (uint32_t*)fragmentShaderSource.data();
         fragmentModule = Context::GetInstance().logicaldevice.createShaderModule(createInfo);
     }
 }

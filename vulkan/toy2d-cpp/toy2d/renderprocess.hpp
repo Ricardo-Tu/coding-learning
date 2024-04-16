@@ -8,17 +8,15 @@ namespace toy2d
     {
     public:
         vk::RenderPass renderPass;
-        vk::Pipeline pipline;
+        vk::Pipeline pipeline;
         vk::PipelineLayout pipelineLayout;
         static void Init();
         void InitRenderPass();
         void InitRenderPassLayout();
-        void InitPipeline();
-        static RenderProcess &GetInstance();
+        void InitPipeline(int width, int height);
         ~RenderProcess();
 
     private:
         RenderProcess();
-        static std::unique_ptr<RenderProcess> rendprocess;
     };
 }

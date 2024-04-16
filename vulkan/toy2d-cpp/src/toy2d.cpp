@@ -9,6 +9,9 @@ namespace toy2d
         Context::Init(extensions, retsurface);
         Context::GetInstance().InitSwapchain(width, height);
         Shader::Init(ReadWholeFile("vert.spv"), ReadWholeFile("frag.spv"));
+        Context::GetInstance().renderprocess->InitRenderPass();
+        Context::GetInstance().renderprocess->InitRenderPassLayout();
+        Context::GetInstance().renderprocess->InitPipeline(width, height);
     }
 
     void Quit()

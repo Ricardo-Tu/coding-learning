@@ -2,7 +2,9 @@
 #include "../toy2d/shader.hpp"
 namespace toy2d
 {
-    std::unique_ptr<Context > Context::instance_ = nullptr;
+    std::unique_ptr<Context> Context::instance_ = nullptr;
+    std::unique_ptr<Swapchain> Context::swapchain = nullptr;
+    std::unique_ptr<RenderProcess> Context::renderprocess = nullptr;
     void Context::Init(std::vector<const char *> extensions, std::function<vk::SurfaceKHR(vk::Instance)> retsurface)
     {
         Context::instance_.reset(new Context(extensions, retsurface));
