@@ -81,10 +81,11 @@ namespace toy2d
     {
         vk::DeviceCreateInfo devicecreateinfo;
         std::array deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
-        QueryQueueFamilyIndexes();
         float priority = 1.0f;
         std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
+        vk::PhysicalDeviceFeatures deviceFeatures;
         vk::DeviceQueueCreateInfo queueCreateInfo;
+        QueryQueueFamilyIndexes();
         if (queueInfo.graphicsFamilyIndex.value() == queueInfo.presentFamilyIndex.value())
         {
             queueCreateInfo.setQueueFamilyIndex(queueInfo.graphicsFamilyIndex.value())
@@ -104,6 +105,7 @@ namespace toy2d
             queueCreateInfos.push_back(queueCreateInfo);
         }
         devicecreateinfo.setQueueCreateInfos(queueCreateInfos)
+            .setPEnabledFeatures(&deviceFeatures)
             .setPEnabledExtensionNames(deviceExtensions);
 
         return physicalDevice.createDevice(devicecreateinfo);
@@ -155,8 +157,12 @@ namespace toy2d
     }
 
     Context::~Context()
-    {
-        Context::GetInstance().swapchain.reset();
+    {   
+        logicaldevice.destroyPipeline(renderprocess->pipeline);
+        logicaldevice.destroyPipelineLayout(renderprocess->pipelineLayout);
+        logicaldevice.destroyRenderPass(renderprocess->renderPass);
+        Context::GetInstance().renderprocess.release();
+        swapchain.release();
         instance.destroySurfaceKHR(surface);
         logicaldevice.destroy();
         instance.destroy();

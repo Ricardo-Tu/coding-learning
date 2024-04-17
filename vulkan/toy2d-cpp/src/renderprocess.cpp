@@ -1,6 +1,8 @@
+#include <vulkan/vulkan.h>
 #include "../toy2d/context.hpp"
 #include "../toy2d/shader.hpp"
 #include "../toy2d/renderprocess.hpp"
+#include <GLFW/glfw3.h>
 
 namespace toy2d
 {
@@ -12,7 +14,7 @@ namespace toy2d
         vk::AttachmentDescription colorAttachmentDescription;
         colorAttachmentDescription.setFormat(Context::GetInstance().swapchain->info.format.format)
             .setInitialLayout(vk::ImageLayout::eUndefined)
-            .setFinalLayout(vk::ImageLayout::eColorAttachmentOptimal)
+            .setFinalLayout(vk::ImageLayout::ePresentSrcKHR)
             .setLoadOp(vk::AttachmentLoadOp::eClear)
             .setStoreOp(vk::AttachmentStoreOp::eStore)
             .setStencilLoadOp(vk::AttachmentLoadOp::eDontCare)
@@ -27,7 +29,7 @@ namespace toy2d
         // 3. subpass
         vk::SubpassDescription subpass;
         subpass.setPipelineBindPoint(vk::PipelineBindPoint::eGraphics)
-            .setColorAttachments(AttachmentRef)
+            .setPColorAttachments(&AttachmentRef)
             .setColorAttachmentCount(1);
 
         // 4. subpass dependency
@@ -39,28 +41,21 @@ namespace toy2d
             .setDstStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput);
 
         renderPassCreateInfo.setSubpasses(subpass)
-            .setAttachments(colorAttachmentDescription)
+            .setPAttachments(&colorAttachmentDescription)
             .setDependencies(dependency)
             .setSubpassCount(1)
             .setAttachmentCount(1);
 
-        vk::RenderPassCreateInfo inteo;
-        inteo.setSubpassCount(1)
-            .setSubpasses(subpass)
-            .setAttachmentCount(1)
-            .setAttachments(colorAttachmentDescription);
-
-        std::cout << "create render pass start" << std::endl;
         // 5. create renderpass
         assert(Context::GetInstance().logicaldevice != nullptr);
-        renderPass = Context::GetInstance().logicaldevice.createRenderPass(inteo);
-        std::cout << "create render pass success" << std::endl;
+        renderPass = Context::GetInstance().logicaldevice.createRenderPass(renderPassCreateInfo);
     }
 
     void RenderProcess::InitRenderPassLayout()
     {
         vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo;
         pipelineLayout = Context::GetInstance().logicaldevice.createPipelineLayout(pipelineLayoutCreateInfo);
+        assert(pipelineLayout != nullptr);
     }
 
     void RenderProcess::InitPipeline(int width, int height)
@@ -113,7 +108,8 @@ namespace toy2d
             .setColorWriteMask(vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
         blend.setLogicOpEnable(false)
             .setAttachments(blendAttachment);
-        createinfo.setPColorBlendState(&blend);
+        createinfo.setPColorBlendState(&blend)
+            .setRenderPass(renderPass);
         auto result = Context::GetInstance().logicaldevice.createGraphicsPipeline(nullptr, createinfo);
         if (result.result != vk::Result::eSuccess)
         {
@@ -130,8 +126,6 @@ namespace toy2d
     RenderProcess::~RenderProcess()
     {
         auto &logicaldevice = Context::GetInstance().logicaldevice;
-        logicaldevice.destroyRenderPass(renderPass);
-        logicaldevice.destroyPipelineLayout(pipelineLayout);
-        logicaldevice.destroyPipeline(pipeline);
+
     }
 }

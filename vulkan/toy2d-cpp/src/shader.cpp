@@ -32,22 +32,22 @@ namespace toy2d
         return stage_;
     }
 
+    Shader::Shader(const std::string &vertexShaderSource, const std::string &fragmentShaderSource)
+    {
+        vk::ShaderModuleCreateInfo createInfo;
+        createInfo.codeSize = vertexShaderSource.size();
+        createInfo.pCode = (uint32_t *)vertexShaderSource.data();
+        vertexModule = Context::GetInstance().logicaldevice.createShaderModule(createInfo);
+
+        createInfo.codeSize = fragmentShaderSource.size();
+        createInfo.pCode = (uint32_t *)fragmentShaderSource.data();
+        fragmentModule = Context::GetInstance().logicaldevice.createShaderModule(createInfo);
+    }
+
     Shader::~Shader()
     {
         auto &device = Context::GetInstance().logicaldevice;
         device.destroyShaderModule(vertexModule);
         device.destroyShaderModule(fragmentModule);
-    }
-
-    Shader::Shader(const std::string &vertexShaderSource, const std::string &fragmentShaderSource)
-    {
-        vk::ShaderModuleCreateInfo createInfo;
-        createInfo.codeSize = vertexShaderSource.size();
-        createInfo.pCode = (uint32_t*)vertexShaderSource.data();
-        vertexModule = Context::GetInstance().logicaldevice.createShaderModule(createInfo);
-
-        createInfo.codeSize = fragmentShaderSource.size();
-        createInfo.pCode = (uint32_t*)fragmentShaderSource.data();
-        fragmentModule = Context::GetInstance().logicaldevice.createShaderModule(createInfo);
     }
 }

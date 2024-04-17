@@ -13,9 +13,9 @@ namespace toy2d
         void InitRenderPass();
         void InitRenderPassLayout();
         void InitPipeline(int width, int height);
+        RenderProcess();
         ~RenderProcess();
 
     private:
-        RenderProcess();
     };
 }

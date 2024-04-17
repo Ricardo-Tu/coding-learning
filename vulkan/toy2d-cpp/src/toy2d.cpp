@@ -7,7 +7,8 @@ namespace toy2d
     void Init(std::vector<const char *> extensions, std::function<vk::SurfaceKHR(vk::Instance)> retsurface, int width, int height)
     {
         Context::Init(extensions, retsurface);
-        Context::GetInstance().InitSwapchain(width, height);
+        Context::GetInstance().swapchain.reset(new Swapchain(width, height));
+        Context::GetInstance().renderprocess.reset(new RenderProcess());
         Shader::Init(ReadWholeFile("vert.spv"), ReadWholeFile("frag.spv"));
         Context::GetInstance().renderprocess->InitRenderPass();
         Context::GetInstance().renderprocess->InitRenderPassLayout();

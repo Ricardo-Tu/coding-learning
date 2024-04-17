@@ -35,47 +35,6 @@ namespace toy2d
         }
     }
 
-    Swapchain::Swapchain(int width, int height)
-    {
-        queryInfo(width, height);
-        vk::SwapchainCreateInfoKHR swapchaincreateinfo;
-        swapchaincreateinfo.setClipped(true)
-            .setImageArrayLayers(1)
-            .setImageUsage(vk::ImageUsageFlagBits::eColorAttachment)
-            .setCompositeAlpha(vk::CompositeAlphaFlagBitsKHR::eOpaque)
-            .setSurface(Context::GetInstance().surface)
-            .setImageColorSpace(info.format.colorSpace)
-            .setImageFormat(info.format.format)
-            .setImageExtent(info.extent)
-            .setMinImageCount(info.imageCount)
-            .setPresentMode(info.presentMode);
-
-        auto &queueIndexes = Context::GetInstance().queueInfo;
-        if (queueIndexes.graphicsFamilyIndex.value() == queueIndexes.presentFamilyIndex.value())
-        {
-            swapchaincreateinfo.setQueueFamilyIndices(queueIndexes.graphicsFamilyIndex.value())
-                .setImageSharingMode(vk::SharingMode::eExclusive);
-        }
-        else
-        {
-            std::array queueFamilyIndexes = {queueIndexes.graphicsFamilyIndex.value(), queueIndexes.presentFamilyIndex.value()};
-            swapchaincreateinfo.setQueueFamilyIndices(queueFamilyIndexes)
-                .setImageSharingMode(vk::SharingMode::eConcurrent);
-        }
-        swapchain = Context::GetInstance().logicaldevice.createSwapchainKHR(swapchaincreateinfo);
-    }
-
-    Swapchain::~Swapchain()
-    {
-        for (auto &fb : framebuffers)
-            Context::GetInstance().logicaldevice.destroyFramebuffer(fb);
-
-        for (auto &view : imageviews)
-            Context::GetInstance().logicaldevice.destroyImageView(view);
-
-        Context::GetInstance().logicaldevice.destroySwapchainKHR(swapchain);
-    }
-
     void Swapchain::getImages()
     {
         images = Context::GetInstance().logicaldevice.getSwapchainImagesKHR(swapchain);
@@ -118,5 +77,44 @@ namespace toy2d
                 .setLayers(1);
             framebuffers[i] = Context::GetInstance().logicaldevice.createFramebuffer(fbcreateinfo);
         }
+    }
+
+    Swapchain::Swapchain(int width, int height)
+    {
+        queryInfo(width, height);
+        vk::SwapchainCreateInfoKHR swapchaincreateinfo;
+        swapchaincreateinfo.setClipped(true)
+            .setImageArrayLayers(1)
+            .setImageUsage(vk::ImageUsageFlagBits::eColorAttachment)
+            .setCompositeAlpha(vk::CompositeAlphaFlagBitsKHR::eOpaque)
+            .setSurface(Context::GetInstance().surface)
+            .setImageColorSpace(info.format.colorSpace)
+            .setImageFormat(info.format.format)
+            .setImageExtent(info.extent)
+            .setMinImageCount(info.imageCount)
+            .setPresentMode(info.presentMode);
+
+        auto &queueIndexes = Context::GetInstance().queueInfo;
+        if (queueIndexes.graphicsFamilyIndex.value() == queueIndexes.presentFamilyIndex.value())
+        {
+            swapchaincreateinfo.setQueueFamilyIndices(queueIndexes.graphicsFamilyIndex.value())
+                .setImageSharingMode(vk::SharingMode::eExclusive);
+        }
+        else
+        {
+            std::array queueFamilyIndexes = {queueIndexes.graphicsFamilyIndex.value(), queueIndexes.presentFamilyIndex.value()};
+            swapchaincreateinfo.setQueueFamilyIndices(queueFamilyIndexes)
+                .setImageSharingMode(vk::SharingMode::eConcurrent);
+        }
+        swapchain = Context::GetInstance().logicaldevice.createSwapchainKHR(swapchaincreateinfo);
+    }
+
+    Swapchain::~Swapchain()
+    {
+        for (auto &fb : framebuffers)
+            Context::GetInstance().logicaldevice.destroyFramebuffer(fb);
+
+        for (auto &view : imageviews)
+            Context::GetInstance().logicaldevice.destroyImageView(view);
     }
 }
