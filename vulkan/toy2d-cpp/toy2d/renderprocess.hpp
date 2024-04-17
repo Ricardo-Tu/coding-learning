@@ -10,7 +10,6 @@ namespace toy2d
         vk::RenderPass renderPass;
         vk::Pipeline pipeline;
         vk::PipelineLayout pipelineLayout;
-        static void Init();
         void InitRenderPass();
         void InitRenderPassLayout();
         void InitPipeline(int width, int height);

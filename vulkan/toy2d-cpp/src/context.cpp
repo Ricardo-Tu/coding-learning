@@ -103,9 +103,9 @@ namespace toy2d
                 .setPQueuePriorities(&priority);
             queueCreateInfos.push_back(queueCreateInfo);
         }
-        devicecreateinfo.setPQueueCreateInfos(queueCreateInfos.data())
-            .setQueueCreateInfoCount(queueCreateInfos.size())
+        devicecreateinfo.setQueueCreateInfos(queueCreateInfos)
             .setPEnabledExtensionNames(deviceExtensions);
+
         return physicalDevice.createDevice(devicecreateinfo);
     }
 

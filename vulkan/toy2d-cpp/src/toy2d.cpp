@@ -11,6 +11,7 @@ namespace toy2d
         Shader::Init(ReadWholeFile("vert.spv"), ReadWholeFile("frag.spv"));
         Context::GetInstance().renderprocess->InitRenderPass();
         Context::GetInstance().renderprocess->InitRenderPassLayout();
+        Context::GetInstance().swapchain->createFramebuffers(width, height);
         Context::GetInstance().renderprocess->InitPipeline(width, height);
     }
 

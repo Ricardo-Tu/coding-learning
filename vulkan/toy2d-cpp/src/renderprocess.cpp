@@ -4,14 +4,13 @@
 
 namespace toy2d
 {
-
     void RenderProcess::InitRenderPass()
     {
         vk::RenderPassCreateInfo renderPassCreateInfo;
 
         // 1. color attachment description
-        vk::AttachmentDescription colorAttachment;
-        colorAttachment.setFormat(Context::GetInstance().swapchain->info.format.format)
+        vk::AttachmentDescription colorAttachmentDescription;
+        colorAttachmentDescription.setFormat(Context::GetInstance().swapchain->info.format.format)
             .setInitialLayout(vk::ImageLayout::eUndefined)
             .setFinalLayout(vk::ImageLayout::eColorAttachmentOptimal)
             .setLoadOp(vk::AttachmentLoadOp::eClear)
@@ -19,18 +18,17 @@ namespace toy2d
             .setStencilLoadOp(vk::AttachmentLoadOp::eDontCare)
             .setStencilStoreOp(vk::AttachmentStoreOp::eDontCare)
             .setSamples(vk::SampleCountFlagBits::e1);
-        renderPassCreateInfo.setPAttachments(&colorAttachment);
 
         // 2. color attachment reference
-        vk::AttachmentReference colorAttachmentRef;
-        colorAttachmentRef.setLayout(vk::ImageLayout::eColorAttachmentOptimal)
+        vk::AttachmentReference AttachmentRef;
+        AttachmentRef.setLayout(vk::ImageLayout::eColorAttachmentOptimal)
             .setAttachment(0);
 
         // 3. subpass
         vk::SubpassDescription subpass;
         subpass.setPipelineBindPoint(vk::PipelineBindPoint::eGraphics)
-            .setColorAttachments(colorAttachmentRef);
-        renderPassCreateInfo.setSubpasses(subpass);
+            .setColorAttachments(AttachmentRef)
+            .setColorAttachmentCount(1);
 
         // 4. subpass dependency
         vk::SubpassDependency dependency;
@@ -39,10 +37,24 @@ namespace toy2d
             .setDstAccessMask(vk::AccessFlagBits::eColorAttachmentWrite)
             .setSrcStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput)
             .setDstStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput);
-        renderPassCreateInfo.setDependencies(dependency);
 
+        renderPassCreateInfo.setSubpasses(subpass)
+            .setAttachments(colorAttachmentDescription)
+            .setDependencies(dependency)
+            .setSubpassCount(1)
+            .setAttachmentCount(1);
+
+        vk::RenderPassCreateInfo inteo;
+        inteo.setSubpassCount(1)
+            .setSubpasses(subpass)
+            .setAttachmentCount(1)
+            .setAttachments(colorAttachmentDescription);
+
+        std::cout << "create render pass start" << std::endl;
         // 5. create renderpass
-        renderPass = Context::GetInstance().logicaldevice.createRenderPass(renderPassCreateInfo);
+        assert(Context::GetInstance().logicaldevice != nullptr);
+        renderPass = Context::GetInstance().logicaldevice.createRenderPass(inteo);
+        std::cout << "create render pass success" << std::endl;
     }
 
     void RenderProcess::InitRenderPassLayout()

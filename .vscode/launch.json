@@ -1,0 +1,25 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "request": "launch",
+            "name": "Run selected program",
+            "program": "${workspaceRoot}/vulkan/toy2d-cpp/build/sandbox/sandbox",
+            "type": "lldb",
+            "cwd": "${workspaceRoot}/vulkan/toy2d-cpp/",
+            "stopOnEntry": true,
+            "sourceMap": {
+                "/home/ubuntu/zhonghui/vulkan/coding-learning/vulkan/toy2d-cpp/sandbox/": "${workspaceRoot}/vulkan/toy2d-cpp/sandbox/",
+                "/home/ubuntu/zhonghui/vulkan/coding-learning/vulkan/toy2d-cpp/": "${workspaceRoot}/vulkan/toy2d-cpp/",
+                "/home/ubuntu/zhonghui/vulkan/coding-learning/vulkan/toy2d-cpp/src": "${workspaceRoot}/vulkan/toy2d-cpp/src",
+            },
+            "args": [],
+            "preLaunchTask": "makelldb: selected file",
+        },
+        {
+            "request": "launch",
+            "name": "Run new target",
+            "type": "makelldb"
+        }
+    ]
+}

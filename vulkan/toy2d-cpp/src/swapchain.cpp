@@ -67,6 +67,9 @@ namespace toy2d
 
     Swapchain::~Swapchain()
     {
+        for (auto &fb : framebuffers)
+            Context::GetInstance().logicaldevice.destroyFramebuffer(fb);
+
         for (auto &view : imageviews)
             Context::GetInstance().logicaldevice.destroyImageView(view);
 
@@ -98,6 +101,22 @@ namespace toy2d
                 .setFormat(info.format.format)
                 .setSubresourceRange(range);
             imageviews[i] = Context::GetInstance().logicaldevice.createImageView(ivcreateinfo);
+        }
+    }
+
+    void Swapchain::createFramebuffers(int width, int height)
+    {
+        framebuffers.resize(images.size());
+        for (int i = 0; i < images.size(); i++)
+        {
+            vk::FramebufferCreateInfo fbcreateinfo;
+            fbcreateinfo.setRenderPass(Context::GetInstance().renderprocess->renderPass)
+                .setAttachmentCount(1)
+                .setPAttachments(&imageviews[i])
+                .setWidth(width)
+                .setHeight(height)
+                .setLayers(1);
+            framebuffers[i] = Context::GetInstance().logicaldevice.createFramebuffer(fbcreateinfo);
         }
     }
 }
