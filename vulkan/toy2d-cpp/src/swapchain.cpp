@@ -107,14 +107,24 @@ namespace toy2d
                 .setImageSharingMode(vk::SharingMode::eConcurrent);
         }
         swapchain = Context::GetInstance().logicaldevice.createSwapchainKHR(swapchaincreateinfo);
+        getImages();
+        createimageViews();
     }
 
     Swapchain::~Swapchain()
     {
+        vk::Device logicaldevice = Context::GetInstance().logicaldevice;
+        std::cout << "destroy swapchain" << std::endl;
+        for (auto &view : imageviews)
+            logicaldevice.destroyImageView(view);
+        std::cout << "1" << std::endl;
+        for (auto &image : images)
+            Context::GetInstance().logicaldevice.destroyImage(image);
+        std::cout << "2" << std::endl;
         for (auto &fb : framebuffers)
             Context::GetInstance().logicaldevice.destroyFramebuffer(fb);
-
-        for (auto &view : imageviews)
-            Context::GetInstance().logicaldevice.destroyImageView(view);
+        std::cout << "3" << std::endl;
+        Context::GetInstance().logicaldevice.destroySwapchainKHR(swapchain);
+        std::cout << "destroy swapchain" << std::endl;
     }
 }

@@ -8,6 +8,7 @@
 #include <vulkan/vulkan.hpp>
 #include <algorithm>
 #include "swapchain.hpp"
+#include "render.hpp"
 #include "renderprocess.hpp"
 
 namespace toy2d
@@ -29,6 +30,8 @@ namespace toy2d
         vk::SurfaceKHR surface = nullptr;
         static std::unique_ptr<Swapchain> swapchain;
         static std::unique_ptr<RenderProcess> renderprocess;
+        static std::unique_ptr<render> render_;
+        static std::unique_ptr<Context> instance_;
         vk::Instance CreateInstance(std::vector<const char *> extensions);
         vk::PhysicalDevice PickupPhysicalDevice();
         vk::Device CreateLogicalDevice();
@@ -37,11 +40,10 @@ namespace toy2d
         static Context &GetInstance();
         void QueryQueueFamilyIndexes();
         void InitSwapchain(int width, int height);
+        Context(std::vector<const char *> extensions,
+                std::function<vk::SurfaceKHR(vk::Instance)> retsurface);
         ~Context();
 
     private:
-        Context(std::vector<const char *> extensions,
-                std::function<vk::SurfaceKHR(vk::Instance)> retsurface);
-        static std::unique_ptr<Context> instance_;
     };
 }

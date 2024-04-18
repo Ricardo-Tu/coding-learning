@@ -1,8 +1,6 @@
-#include <vulkan/vulkan.h>
 #include "../toy2d/context.hpp"
 #include "../toy2d/shader.hpp"
 #include "../toy2d/renderprocess.hpp"
-#include <GLFW/glfw3.h>
 
 namespace toy2d
 {
@@ -54,6 +52,8 @@ namespace toy2d
     void RenderProcess::InitRenderPassLayout()
     {
         vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo;
+        pipelineLayoutCreateInfo.setSetLayoutCount(0)
+            .setPushConstantRangeCount(0);
         pipelineLayout = Context::GetInstance().logicaldevice.createPipelineLayout(pipelineLayoutCreateInfo);
         assert(pipelineLayout != nullptr);
     }
@@ -88,7 +88,7 @@ namespace toy2d
         vk::PipelineRasterizationStateCreateInfo rastinfo;
         rastinfo.setRasterizerDiscardEnable(false)
             .setCullMode(vk::CullModeFlagBits::eBack)
-            .setFrontFace(vk::FrontFace::eCounterClockwise)
+            .setFrontFace(vk::FrontFace::eClockwise)
             .setPolygonMode(vk::PolygonMode::eFill)
             .setLineWidth(1.0f);
         createinfo.setPRasterizationState(&rastinfo);
@@ -109,7 +109,8 @@ namespace toy2d
         blend.setLogicOpEnable(false)
             .setAttachments(blendAttachment);
         createinfo.setPColorBlendState(&blend)
-            .setRenderPass(renderPass);
+            .setRenderPass(renderPass)
+            .setLayout(pipelineLayout);
         auto result = Context::GetInstance().logicaldevice.createGraphicsPipeline(nullptr, createinfo);
         if (result.result != vk::Result::eSuccess)
         {
@@ -125,7 +126,5 @@ namespace toy2d
 
     RenderProcess::~RenderProcess()
     {
-        auto &logicaldevice = Context::GetInstance().logicaldevice;
-
-    }
+   }
 }

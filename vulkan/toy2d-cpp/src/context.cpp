@@ -5,14 +5,18 @@ namespace toy2d
     std::unique_ptr<Context> Context::instance_ = nullptr;
     std::unique_ptr<Swapchain> Context::swapchain = nullptr;
     std::unique_ptr<RenderProcess> Context::renderprocess = nullptr;
+    std::unique_ptr<render> Context::render_ = nullptr;
+
     void Context::Init(std::vector<const char *> extensions, std::function<vk::SurfaceKHR(vk::Instance)> retsurface)
     {
-        Context::instance_.reset(new Context(extensions, retsurface));
+        instance_.reset(new Context(extensions, retsurface));
     }
 
     void Context::Quit()
     {
+        std::cout << "context quit" << std::endl;
         instance_.release();
+        std::cout << "context quit leave" << std::endl;
     }
 
     Context &Context::GetInstance()
@@ -154,14 +158,26 @@ namespace toy2d
             presentQueue = logicaldevice.getQueue(queueInfo.presentFamilyIndex.value(), 0);
             std::cout << "graphicQueue:" << graphicQueue << std::endl;
         }
+
     }
 
     Context::~Context()
-    {   
+    {
+        // std::cout << "1" << std::endl;
+        // auto &logicaldevice = Context::GetInstance().logicaldevice;
+        // logicaldevice.destroyPipeline(Context::GetInstance().renderprocess->pipeline);
+        // logicaldevice.destroyPipelineLayout(Context::GetInstance().renderprocess->pipelineLayout);
+        // logicaldevice.destroyRenderPass(Context::GetInstance().renderprocess->renderPass);
+ 
+        std::cout << "2" << std::endl;
         logicaldevice.destroyPipeline(renderprocess->pipeline);
+        std::cout << "3" << std::endl;
         logicaldevice.destroyPipelineLayout(renderprocess->pipelineLayout);
+        std::cout << "4" << std::endl;
         logicaldevice.destroyRenderPass(renderprocess->renderPass);
-        Context::GetInstance().renderprocess.release();
+        std::cout << "5" << std::endl;
+        // render_.release();
+        renderprocess.release();
         swapchain.release();
         instance.destroySurfaceKHR(surface);
         logicaldevice.destroy();

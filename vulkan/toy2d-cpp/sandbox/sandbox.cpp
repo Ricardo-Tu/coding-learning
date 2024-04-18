@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 #include "../toy2d/toy2d.hpp"
+#include "../toy2d/render.hpp"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_vulkan.h>
 #include <SDL2/SDL_video.h>
@@ -36,6 +37,7 @@ int main(int argc, char *argv[])
                   SDL_Vulkan_CreateSurface(window, instance, (VkSurfaceKHR*)&surface);
                   return surface; },
         1024, 720);
+    // auto &renderer = toy2d::GetRenderInstance(); 
 
     while (!shouldClose)
     {
@@ -46,6 +48,7 @@ int main(int argc, char *argv[])
                 shouldClose = true;
             }
         }
+        // renderer.Render();
     }
     SDL_DestroyWindow(window);
     SDL_Quit();
