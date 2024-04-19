@@ -10,7 +10,7 @@ namespace toy2d
 
         // 1. color attachment description
         vk::AttachmentDescription colorAttachmentDescription;
-        colorAttachmentDescription.setFormat(Context::GetInstance().swapchain->info.format.format)
+        colorAttachmentDescription.setFormat(Context::GetInstance().swapchain_->swapchaininfo.format.format)
             .setInitialLayout(vk::ImageLayout::eUndefined)
             .setFinalLayout(vk::ImageLayout::ePresentSrcKHR)
             .setLoadOp(vk::AttachmentLoadOp::eClear)
@@ -126,5 +126,6 @@ namespace toy2d
 
     RenderProcess::~RenderProcess()
     {
-   }
+        std::cout << "leave ~RenderProcess" << std::endl;
+    }
 }

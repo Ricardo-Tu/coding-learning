@@ -24,7 +24,7 @@ namespace toy2d
     void render::Render()
     {
         auto &logicaldevice = Context::GetInstance().logicaldevice;
-        auto result = logicaldevice.acquireNextImageKHR(Context::GetInstance().swapchain->swapchain, UINT64_MAX, imageAvaliable_);
+        auto result = logicaldevice.acquireNextImageKHR(Context::GetInstance().swapchain_->swapChain, UINT64_MAX, imageAvaliable_);
         if (result.result != vk::Result::eSuccess)
             std::throw_with_nested(std::runtime_error("failed to acquire next image"));
 
@@ -36,15 +36,15 @@ namespace toy2d
         begin.setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
         cmdbuffer_.begin(begin);
         {
-            cmdbuffer_.bindPipeline(vk::PipelineBindPoint::eGraphics, Context::GetInstance().renderprocess->pipeline);
+            cmdbuffer_.bindPipeline(vk::PipelineBindPoint::eGraphics, Context::GetInstance().renderprocess_->pipeline);
             vk::RenderPassBeginInfo beginInfo;
             vk::Rect2D renderArea;
             vk::ClearValue clearValue;
             clearValue.color = vk::ClearColorValue(std::array<float, 4>{0.0f, 0.0f, 0.0f, 1.0f});
             renderArea.setOffset({0, 0})
-                .setExtent(Context::GetInstance().swapchain->info.extent);
-            beginInfo.setRenderPass(Context::GetInstance().renderprocess->renderPass)
-                .setFramebuffer(Context::GetInstance().swapchain->framebuffers[imageIndex])
+                .setExtent(Context::GetInstance().swapchain_->swapchaininfo.extent);
+            beginInfo.setRenderPass(Context::GetInstance().renderprocess_->renderPass)
+                .setFramebuffer(Context::GetInstance().swapchain_->framebuffers[imageIndex])
                 .setRenderArea(renderArea)
                 .setClearValueCount(1)
                 .setClearValues(clearValue);
@@ -70,7 +70,7 @@ namespace toy2d
 
         vk::PresentInfoKHR present;
         present.setImageIndices(imageIndex)
-            .setSwapchains(Context::GetInstance().swapchain->swapchain)
+            .setSwapchains(Context::GetInstance().swapchain_->swapChain)
             .setWaitSemaphores(imageDrawFinsh_);
 
         auto res = Context::GetInstance().presentQueue.presentKHR(present);

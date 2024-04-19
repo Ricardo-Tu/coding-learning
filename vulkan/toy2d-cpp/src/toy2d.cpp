@@ -9,23 +9,24 @@ namespace toy2d
     {
         // Context::Init(extensions, retsurface);
         Context::GetInstance().instance_.reset(new Context(extensions, retsurface));
-        Context::GetInstance().swapchain.reset(new Swapchain(width, height));
-        Context::GetInstance().renderprocess.reset(new RenderProcess());
-        Shader::Init(ReadWholeFile("vert.spv"), ReadWholeFile("frag.spv"));
-        Context::GetInstance().renderprocess->InitRenderPass();
-        Context::GetInstance().renderprocess->InitRenderPassLayout();
-        Context::GetInstance().swapchain->createFramebuffers(width, height);
-        Context::GetInstance().renderprocess->InitPipeline(width, height);
+        // Context::GetInstance().swapchain_.reset(new Swapchain(width, height));
+        Context::GetInstance().swapchain_ = std::make_unique<Swapchain>(width, height);
+        // Context::GetInstance().renderprocess_.reset(new RenderProcess());
+        // Shader::Init(ReadWholeFile("vert.spv"), ReadWholeFile("frag.spv"));
+        // Context::GetInstance().renderprocess_->InitRenderPass();
+        // Context::GetInstance().renderprocess_->InitRenderPassLayout();
+        // Context::GetInstance().swapchain->createFramebuffers(width, height);
+        // Context::GetInstance().renderprocess_->InitPipeline(width, height);
         // Context::GetInstance().render_.reset(new render());
     }
 
     void Quit()
     {
         std::cout << "quit" << std::endl;
-        Context::GetInstance().logicaldevice.waitIdle();
+        // Context::GetInstance().logicaldevice.waitIdle();
         std::cout << "wait idle" << std::endl;
-        Shader::Quit();
         std::cout << "shader quit" << std::endl;
+        // Shader::Quit();
         Context::Quit();
     }
 

@@ -28,8 +28,8 @@ namespace toy2d
         vk::Queue graphicQueue;
         vk::Queue presentQueue;
         vk::SurfaceKHR surface = nullptr;
-        static std::unique_ptr<Swapchain> swapchain;
-        static std::unique_ptr<RenderProcess> renderprocess;
+        static std::unique_ptr<Swapchain> swapchain_;
+        static std::unique_ptr<RenderProcess> renderprocess_;
         static std::unique_ptr<render> render_;
         static std::unique_ptr<Context> instance_;
         vk::Instance CreateInstance(std::vector<const char *> extensions);

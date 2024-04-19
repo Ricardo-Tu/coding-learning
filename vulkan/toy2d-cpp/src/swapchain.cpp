@@ -9,55 +9,50 @@ namespace toy2d
         auto physicaldevice = Context::GetInstance().physicalDevice;
         auto surface = Context::GetInstance().surface;
         auto formats = physicaldevice.getSurfaceFormatsKHR(surface);
-        info.format = formats[0];
+        swapchaininfo.format = formats[0];
         for (const auto &format : formats)
         {
             if (format.format == vk::Format::eR8G8B8A8Srgb && format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear)
             {
-                info.format = format;
+                swapchaininfo.format = format;
                 break;
             }
         }
         auto capbilities = physicaldevice.getSurfaceCapabilitiesKHR(surface);
-        info.imageCount = std::clamp<uint32_t>(2, capbilities.minImageCount, capbilities.maxImageCount);
-        info.extent.width = std::clamp<uint32_t>(width, capbilities.minImageExtent.width, capbilities.maxImageExtent.width);
-        info.extent.height = std::clamp<uint32_t>(height, capbilities.minImageExtent.height, capbilities.maxImageExtent.height);
-        info.transform = capbilities.currentTransform;
+        swapchaininfo.imageCount = std::clamp<uint32_t>(2, capbilities.minImageCount, capbilities.maxImageCount);
+        swapchaininfo.extent.width = std::clamp<uint32_t>(width, capbilities.minImageExtent.width, capbilities.maxImageExtent.width);
+        swapchaininfo.extent.height = std::clamp<uint32_t>(height, capbilities.minImageExtent.height, capbilities.maxImageExtent.height);
+        swapchaininfo.transform = capbilities.currentTransform;
         auto presents = physicaldevice.getSurfacePresentModesKHR(surface);
-        info.presentMode = vk::PresentModeKHR::eFifo;
+        swapchaininfo.presentMode = vk::PresentModeKHR::eFifo;
         for (const auto &present : presents)
         {
             if (present == vk::PresentModeKHR::eMailbox)
             {
-                info.presentMode = present;
+                swapchaininfo.presentMode = present;
                 break;
             }
         }
     }
 
-    void Swapchain::getImages()
+    void Swapchain::createImageandImageViews()
     {
-        images = Context::GetInstance().logicaldevice.getSwapchainImagesKHR(swapchain);
-    }
-
-    void Swapchain::createimageViews()
-    {
+        images = Context::GetInstance().logicaldevice.getSwapchainImagesKHR(swapChain);
         imageviews.resize(images.size());
         for (int i = 0; i < images.size(); i++)
         {
             vk::ImageViewCreateInfo ivcreateinfo;
-            vk::ComponentMapping mapping;
             vk::ImageSubresourceRange range;
             range.setBaseMipLevel(0)
-                .setLevelCount(1)
                 .setBaseArrayLayer(0)
+                .setLevelCount(1)
                 .setLayerCount(1)
                 .setAspectMask(vk::ImageAspectFlagBits::eColor);
 
             ivcreateinfo.setImage(images[i])
+                .setFormat(swapchaininfo.format.format)
                 .setViewType(vk::ImageViewType::e2D)
-                .setComponents(mapping)
-                .setFormat(info.format.format)
+                .setComponents(vk::ComponentMapping{})
                 .setSubresourceRange(range);
             imageviews[i] = Context::GetInstance().logicaldevice.createImageView(ivcreateinfo);
         }
@@ -69,7 +64,7 @@ namespace toy2d
         for (int i = 0; i < images.size(); i++)
         {
             vk::FramebufferCreateInfo fbcreateinfo;
-            fbcreateinfo.setRenderPass(Context::GetInstance().renderprocess->renderPass)
+            fbcreateinfo.setRenderPass(Context::GetInstance().renderprocess_->renderPass)
                 .setAttachmentCount(1)
                 .setPAttachments(&imageviews[i])
                 .setWidth(width)
@@ -88,11 +83,15 @@ namespace toy2d
             .setImageUsage(vk::ImageUsageFlagBits::eColorAttachment)
             .setCompositeAlpha(vk::CompositeAlphaFlagBitsKHR::eOpaque)
             .setSurface(Context::GetInstance().surface)
-            .setImageColorSpace(info.format.colorSpace)
-            .setImageFormat(info.format.format)
-            .setImageExtent(info.extent)
-            .setMinImageCount(info.imageCount)
-            .setPresentMode(info.presentMode);
+            .setImageColorSpace(swapchaininfo.format.colorSpace)
+            .setImageFormat(swapchaininfo.format.format)
+            .setImageExtent(swapchaininfo.extent)
+            .setMinImageCount(swapchaininfo.imageCount)
+            .setPresentMode(vk::PresentModeKHR::eFifo)
+            .setPreTransform(swapchaininfo.transform)
+            .setOldSwapchain(nullptr)
+            .setClipped(true)
+            .setCompositeAlpha(vk::CompositeAlphaFlagBitsKHR::eOpaque);
 
         auto &queueIndexes = Context::GetInstance().queueInfo;
         if (queueIndexes.graphicsFamilyIndex.value() == queueIndexes.presentFamilyIndex.value())
@@ -106,25 +105,28 @@ namespace toy2d
             swapchaincreateinfo.setQueueFamilyIndices(queueFamilyIndexes)
                 .setImageSharingMode(vk::SharingMode::eConcurrent);
         }
-        swapchain = Context::GetInstance().logicaldevice.createSwapchainKHR(swapchaincreateinfo);
-        getImages();
-        createimageViews();
+        swapChain = Context::GetInstance().logicaldevice.createSwapchainKHR(swapchaincreateinfo);
+
+        std::cout << "create swapchain 1" << std::endl;
+        // cleanup();
+        // Context::GetInstance().logicaldevice.destroySwapchainKHR(swapchain);
+        std::cout << "create swapchain 2" << std::endl;
+        // cleanup();
+        // createImageandImageViews();
+        std::cout << "create swapchain 3" << std::endl;
+    }
+    void Swapchain::cleanup()
+    {
+        std::cout << "entry cleanup" << std::endl;
+        Context::GetInstance().logicaldevice.destroySwapchainKHR(swapChain);
+        std::cout << "leave cleanup" << std::endl;
     }
 
     Swapchain::~Swapchain()
     {
-        vk::Device logicaldevice = Context::GetInstance().logicaldevice;
-        std::cout << "destroy swapchain" << std::endl;
-        for (auto &view : imageviews)
-            logicaldevice.destroyImageView(view);
-        std::cout << "1" << std::endl;
-        for (auto &image : images)
-            Context::GetInstance().logicaldevice.destroyImage(image);
-        std::cout << "2" << std::endl;
-        for (auto &fb : framebuffers)
-            Context::GetInstance().logicaldevice.destroyFramebuffer(fb);
-        std::cout << "3" << std::endl;
-        Context::GetInstance().logicaldevice.destroySwapchainKHR(swapchain);
-        std::cout << "destroy swapchain" << std::endl;
+        std::cout << "entry destroy swapchain" << std::endl;
+        cleanup();
+        // Context::GetInstance().logicaldevice.destroySwapchainKHR(swapchain);
+        std::cout << "leave swapchain" << std::endl;
     }
 }

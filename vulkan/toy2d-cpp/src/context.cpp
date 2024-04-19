@@ -3,8 +3,8 @@
 namespace toy2d
 {
     std::unique_ptr<Context> Context::instance_ = nullptr;
-    std::unique_ptr<Swapchain> Context::swapchain = nullptr;
-    std::unique_ptr<RenderProcess> Context::renderprocess = nullptr;
+    std::unique_ptr<Swapchain> Context::swapchain_ = nullptr;
+    std::unique_ptr<RenderProcess> Context::renderprocess_ = nullptr;
     std::unique_ptr<render> Context::render_ = nullptr;
 
     void Context::Init(std::vector<const char *> extensions, std::function<vk::SurfaceKHR(vk::Instance)> retsurface)
@@ -15,7 +15,25 @@ namespace toy2d
     void Context::Quit()
     {
         std::cout << "context quit" << std::endl;
-        instance_.release();
+        // vk::Device &logicaldevice = Context::GetInstance().logicaldevice;
+        std::cout << "1" << std::endl;
+        // for (auto &fb : Context::GetInstance().swapchain->framebuffers)
+        // Context::GetInstance().logicaldevice.destroyFramebuffer(fb);
+        std::cout << "1" << std::endl;
+        // for (auto &image : Context::GetInstance().swapchain->images)
+        // Context::GetInstance().logicaldevice.destroyImage(image);
+        std::cout << "2" << std::endl;
+        // for (auto &view : Context::GetInstance().swapchain->imageviews)
+        // ctx.logicaldevice.destroyImageView(view, nullptr);
+        std::cout << "3" << std::endl;
+        // Context::GetInstance().logicaldevice.destroySwapchainKHR(swapchain_->swapchain);
+        // ctx.logicaldevice.destroyPipeline(ctx.renderprocess_->pipeline);
+        // ctx.logicaldevice.destroyPipelineLayout(ctx.renderprocess_->pipelineLayout);
+        // ctx.logicaldevice.destroyRenderPass(ctx.renderprocess_->renderPass);
+        // renderprocess_.reset();
+        std::cout << "5" << std::endl;
+        Context::GetInstance().swapchain_.reset();
+        instance_.reset();
         std::cout << "context quit leave" << std::endl;
     }
 
@@ -136,7 +154,7 @@ namespace toy2d
 
     void Context::InitSwapchain(int width, int height)
     {
-        swapchain.reset(new Swapchain(width, height));
+        swapchain_.reset(new Swapchain(width, height));
     }
 
     Context::Context(std::vector<const char *> extensions,
@@ -158,7 +176,6 @@ namespace toy2d
             presentQueue = logicaldevice.getQueue(queueInfo.presentFamilyIndex.value(), 0);
             std::cout << "graphicQueue:" << graphicQueue << std::endl;
         }
-
     }
 
     Context::~Context()
@@ -168,18 +185,20 @@ namespace toy2d
         // logicaldevice.destroyPipeline(Context::GetInstance().renderprocess->pipeline);
         // logicaldevice.destroyPipelineLayout(Context::GetInstance().renderprocess->pipelineLayout);
         // logicaldevice.destroyRenderPass(Context::GetInstance().renderprocess->renderPass);
- 
-        std::cout << "2" << std::endl;
-        logicaldevice.destroyPipeline(renderprocess->pipeline);
-        std::cout << "3" << std::endl;
-        logicaldevice.destroyPipelineLayout(renderprocess->pipelineLayout);
-        std::cout << "4" << std::endl;
-        logicaldevice.destroyRenderPass(renderprocess->renderPass);
-        std::cout << "5" << std::endl;
+
         // render_.release();
-        renderprocess.release();
-        swapchain.release();
-        instance.destroySurfaceKHR(surface);
+        // std::cout << "destroy swapchain" << std::endl;
+        // std::cout << "destroy swapchain" << std::endl;
+        // for (auto &view : swapchain->imageviews)
+        //     logicaldevice.destroyImageView(view);
+        // std::cout << "1" << std::endl;
+        // for (auto &fb : swapchain->framebuffers)
+        //     logicaldevice.destroyFramebuffer(fb);
+        // std::cout << "2" << std::endl;
+        // logicaldevice.destroySwapchainKHR(swapchain->swapchain);
+        // std::cout << "destroy swapchain" << std::endl;
+
+        // instance.destroySurfaceKHR(surface);
         logicaldevice.destroy();
         instance.destroy();
     }

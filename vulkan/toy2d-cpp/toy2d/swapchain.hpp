@@ -3,10 +3,10 @@
 
 namespace toy2d
 {
+
     class Swapchain
     {
     public:
-        vk::SwapchainKHR swapchain;
         Swapchain(int width, int height);
         ~Swapchain();
         struct SwapchainInfo
@@ -14,17 +14,19 @@ namespace toy2d
             vk::Extent2D extent;
             uint32_t imageCount;
             vk::SurfaceFormatKHR format;
-            vk::SurfaceTransformFlagsKHR transform;
+            vk::SurfaceTransformFlagBitsKHR transform;
             vk::PresentModeKHR presentMode;
         };
-        SwapchainInfo info;
+        SwapchainInfo swapchaininfo;
         std::vector<vk::Image> images;
         std::vector<vk::ImageView> imageviews;
         std::vector<vk::Framebuffer> framebuffers;
-
+        vk::SwapchainKHR swapChain;
         void queryInfo(int width, int height);
-        void getImages();
-        void createimageViews();
+        void createImageandImageViews();
         void createFramebuffers(int width, int height);
+        void cleanup();
+
+    private:
     };
 }
