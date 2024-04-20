@@ -1,25 +1,25 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "request": "launch",
-            "name": "Run selected program",
-            "program": "${workspaceRoot}/vulkan/toy2d-cpp/build/sandbox/sandbox",
-            "type": "cppdbg",
-            "cwd": "${workspaceRoot}/vulkan/toy2d-cpp/",
-            "stopAtEntry": false,
-            "sourceFileMap": {
-                "/home/ubuntu/zhonghui/vulkan/coding-learning/vulkan/toy2d-cpp/sandbox/": "${workspaceRoot}/vulkan/toy2d-cpp/sandbox/",
-                "/home/ubuntu/zhonghui/vulkan/coding-learning/vulkan/toy2d-cpp/": "${workspaceRoot}/vulkan/toy2d-cpp/",
-                "/home/ubuntu/zhonghui/vulkan/coding-learning/vulkan/toy2d-cpp/src": "${workspaceRoot}/vulkan/toy2d-cpp/src",
-            },
-            "args": [],
-            "preLaunchTask": "makelldb: selected file",
-        },
-        {
-            "request": "launch",
-            "name": "Run new target",
-            "type": "makelldb"
-        }
-    ],
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "request": "launch",
+      "name": "gdb-debug-sandbox",
+      "program": "${workspaceRoot}/vulkan/toy2d-cpp/build/sandbox/sandbox",
+      "type": "cppdbg",
+      "cwd": "${workspaceRoot}/vulkan/toy2d-cpp/",
+      "stopAtEntry": true,
+      "sourceFileMap": {
+        "/home/kali/ricardo/vulkan/coding-learning/vulkan/toy2d-cpp/sandbox/": "${workspaceRoot}/vulkan/toy2d-cpp/sandbox/",
+        "/home/kali/ricardo/vulkan/coding-learning/vulkan/toy2d-cpp/": "${workspaceRoot}/vulkan/toy2d-cpp/",
+        "/home/kali/ricardo/vulkan/coding-learning/vulkan/toy2d-cpp/src": "${workspaceRoot}/vulkan/toy2d-cpp/src"
+      },
+      "args": [],
+      "environment": [],
+      "externalConsole": false,
+      "logging": {
+        "engineLogging": false
+      },
+      "MIMode": "gdb"
+    }
+  ]
 }

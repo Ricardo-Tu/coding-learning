@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
                   SDL_Vulkan_CreateSurface(window, instance, (VkSurfaceKHR*)&surface);
                   return surface; },
         1024, 720);
-    // auto &renderer = toy2d::GetRenderInstance(); 
+    auto &renderer = toy2d::GetRenderInstance(); 
 
     while (!shouldClose)
     {
@@ -48,12 +48,12 @@ int main(int argc, char *argv[])
                 shouldClose = true;
             }
         }
-        // renderer.Render();
+        renderer.Render();
     }
-    SDL_DestroyWindow(window);
-    SDL_Quit();
 
     toy2d::Quit();
+    SDL_DestroyWindow(window);
+    SDL_Quit();
 
     // SDL_Init(SDL_INIT_EVERYTHING);
     // SDL_Window *window = SDL_CreateWindow("sandbox",

@@ -99,7 +99,10 @@ namespace toy2d
     render::~render()
     {
         vk::Device logicaldevice = Context::GetInstance().logicaldevice;
-        // logicaldevice.destroyFence(fence_);
-        // logicaldevice.destroyCommandPool(cmdpool_);
+        logicaldevice.destroySemaphore(imageAvaliable_);
+        logicaldevice.destroySemaphore(imageDrawFinsh_);
+        logicaldevice.destroyFence(fence_);
+        logicaldevice.freeCommandBuffers(cmdpool_, cmdbuffer_);
+        logicaldevice.destroyCommandPool(cmdpool_);
     }
 }

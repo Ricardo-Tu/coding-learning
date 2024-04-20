@@ -25,7 +25,6 @@ namespace toy2d
         void queryInfo(int width, int height);
         void createImageandImageViews();
         void createFramebuffers(int width, int height);
-        void cleanup();
 
     private:
     };

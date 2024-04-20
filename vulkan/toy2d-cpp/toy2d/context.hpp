@@ -39,7 +39,6 @@ namespace toy2d
         static void Quit();
         static Context &GetInstance();
         void QueryQueueFamilyIndexes();
-        void InitSwapchain(int width, int height);
         Context(std::vector<const char *> extensions,
                 std::function<vk::SurfaceKHR(vk::Instance)> retsurface);
         ~Context();

@@ -66,7 +66,7 @@ namespace toy2d
             vk::FramebufferCreateInfo fbcreateinfo;
             fbcreateinfo.setRenderPass(Context::GetInstance().renderprocess_->renderPass)
                 .setAttachmentCount(1)
-                .setPAttachments(&imageviews[i])
+                .setAttachments(imageviews[i])
                 .setWidth(width)
                 .setHeight(height)
                 .setLayers(1);
@@ -106,27 +106,19 @@ namespace toy2d
                 .setImageSharingMode(vk::SharingMode::eConcurrent);
         }
         swapChain = Context::GetInstance().logicaldevice.createSwapchainKHR(swapchaincreateinfo);
-
-        std::cout << "create swapchain 1" << std::endl;
-        // cleanup();
-        // Context::GetInstance().logicaldevice.destroySwapchainKHR(swapchain);
-        std::cout << "create swapchain 2" << std::endl;
-        // cleanup();
-        // createImageandImageViews();
-        std::cout << "create swapchain 3" << std::endl;
-    }
-    void Swapchain::cleanup()
-    {
-        std::cout << "entry cleanup" << std::endl;
-        Context::GetInstance().logicaldevice.destroySwapchainKHR(swapChain);
-        std::cout << "leave cleanup" << std::endl;
+        createImageandImageViews();
     }
 
     Swapchain::~Swapchain()
     {
-        std::cout << "entry destroy swapchain" << std::endl;
-        cleanup();
-        // Context::GetInstance().logicaldevice.destroySwapchainKHR(swapchain);
-        std::cout << "leave swapchain" << std::endl;
+        for (auto &fb : framebuffers)
+        {
+            Context::GetInstance().logicaldevice.destroyFramebuffer(fb);
+        }
+        for (auto &iv : imageviews)
+        {
+            Context::GetInstance().logicaldevice.destroyImageView(iv);
+        }
+        Context::GetInstance().logicaldevice.destroySwapchainKHR(swapChain);
     }
 }

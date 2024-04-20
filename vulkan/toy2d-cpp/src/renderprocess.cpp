@@ -126,6 +126,6 @@ namespace toy2d
 
     RenderProcess::~RenderProcess()
     {
-        std::cout << "leave ~RenderProcess" << std::endl;
+        std::cout << "entry and leave ~RenderProcess" << std::endl;
     }
 }

@@ -11,7 +11,7 @@ namespace toy2d
 
     void Shader::Quit()
     {
-        instance_.release();
+        instance_.reset();
     }
 
     Shader &Shader::GetInstance()
