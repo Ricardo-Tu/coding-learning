@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
                 shouldClose = true;
             }
         }
-        renderer.Render();
+        renderer.DrawColorTriangle();
     }
 
     toy2d::Quit();
