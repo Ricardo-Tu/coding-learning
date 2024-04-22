@@ -4,6 +4,11 @@
 
 namespace toy2d
 {
+    const std::vector<Vertex> vertices = {
+        {{-0.5f, 0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
+        {{0.0f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+        {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}}};
+
     void RenderProcess::InitRenderPass()
     {
         vk::RenderPassCreateInfo renderPassCreateInfo;
@@ -60,11 +65,24 @@ namespace toy2d
 
     void RenderProcess::InitPipeline(int width, int height)
     {
+
         vk::GraphicsPipelineCreateInfo createinfo;
 
         // 1. vertex info
-        vk::PipelineVertexInputStateCreateInfo inputstate;
-        createinfo.setPVertexInputState(&inputstate);
+        vk::PipelineVertexInputStateCreateInfo vertexInput;
+        vk::VertexInputBindingDescription bindingdescrip;
+        std::array<vk::VertexInputAttributeDescription, 2> attribute;
+
+        attribute[0].setBinding(0).setFormat(vk::Format::eR32G32B32Sfloat).setLocation(0).setOffset(offsetof(Vertex, pos));
+        attribute[1].setBinding(0).setFormat(vk::Format::eR32G32B32Sfloat).setLocation(1).setOffset(offsetof(Vertex, color));
+        bindingdescrip.setBinding(0)
+            .setStride(sizeof(Vertex))
+            .setInputRate(vk::VertexInputRate::eVertex);
+        vertexInput.setVertexBindingDescriptionCount(1)
+            .setVertexBindingDescriptions(bindingdescrip)
+            .setVertexAttributeDescriptionCount(attribute.size())
+            .setVertexAttributeDescriptions(attribute);
+        createinfo.setPVertexInputState(&vertexInput);
 
         // 2. vertex assembly
         vk::PipelineInputAssemblyStateCreateInfo inputAsm;
@@ -118,6 +136,40 @@ namespace toy2d
             exit(2);
         }
         pipeline = result.value;
+    }
+
+    void RenderProcess::CreateVertexBuffer()
+    {
+        vk::BufferCreateInfo bufferCreateInfo;
+        vk::Device logicaldevice = Context::GetInstance().logicaldevice;
+        bufferCreateInfo.setSize(vertices.size() * sizeof(Vertex))
+            .setUsage(vk::BufferUsageFlagBits::eVertexBuffer)
+            .setSharingMode(vk::SharingMode::eExclusive);
+        vertexBuffer = logicaldevice.createBuffer(bufferCreateInfo);
+        assert(vertexBuffer != nullptr);
+
+        vk::MemoryRequirements memoryRequirements = logicaldevice.getBufferMemoryRequirements(vertexBuffer);
+        vk::MemoryAllocateInfo memoryAllocateInfo;
+        vk::PhysicalDeviceMemoryProperties properties = Context::GetInstance().physicalDevice.getMemoryProperties();
+        uint32_t memorytypeIndex = 0; // find memory type index
+        for (uint32_t i = 0; i < properties.memoryTypeCount; i++)
+        {
+            if ((memoryRequirements.memoryTypeBits & (1 << i)) && (properties.memoryTypes[i].propertyFlags & vk::MemoryPropertyFlagBits::eHostVisible))
+            {
+                memorytypeIndex = i;
+                break;
+            }
+        }
+        memoryAllocateInfo.setAllocationSize(memoryRequirements.size)
+            .setMemoryTypeIndex(memorytypeIndex);
+        vertexBufferMemory = logicaldevice.allocateMemory(memoryAllocateInfo);
+        assert(vertexBufferMemory != nullptr);
+
+        logicaldevice.bindBufferMemory(vertexBuffer, vertexBufferMemory, 0);
+
+        void *data = logicaldevice.mapMemory(vertexBufferMemory, 0, sizeof(vertices)); // map memory
+        memcpy(data, vertices.data(), vertices.size() * sizeof(Vertex));
+        logicaldevice.unmapMemory(vertexBufferMemory);
     }
 
     RenderProcess::RenderProcess()

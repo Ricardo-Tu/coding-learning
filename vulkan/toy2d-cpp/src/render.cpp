@@ -26,7 +26,7 @@ namespace toy2d
         auto &logicaldevice = Context::GetInstance().logicaldevice;
         auto result = logicaldevice.acquireNextImageKHR(Context::GetInstance().swapchain_->swapChain, UINT64_MAX, imageAvaliable_);
         if (result.result != vk::Result::eSuccess)
-            std::throw_with_nested(std::runtime_error("failed to acquire next image"));
+            throw std::runtime_error("failed to acquire next image");
 
         auto imageIndex = result.value;
 
@@ -48,6 +48,8 @@ namespace toy2d
                 .setRenderArea(renderArea)
                 .setClearValueCount(1)
                 .setClearValues(clearValue);
+
+            cmdbuffer_.bindVertexBuffers(0, {Context::GetInstance().renderprocess_->vertexBuffer}, {0});
 
             cmdbuffer_.beginRenderPass(beginInfo, vk::SubpassContents::eInline);
             {
@@ -75,11 +77,11 @@ namespace toy2d
 
         auto res = Context::GetInstance().presentQueue.presentKHR(present);
         if (res != vk::Result::eSuccess)
-            std::throw_with_nested(std::runtime_error("failed to present"));
+            throw std::runtime_error("failed to present");
 
         res = Context::GetInstance().logicaldevice.waitForFences(fence_, vk::True, UINT64_MAX);
         if (res != vk::Result::eSuccess)
-            std::throw_with_nested(std::runtime_error("failed to wait for fence"));
+            throw std::runtime_error("failed to wait for fence");
 
         logicaldevice.resetFences(fence_);
     }

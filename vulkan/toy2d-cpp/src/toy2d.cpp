@@ -16,6 +16,7 @@ namespace toy2d
         Context::GetInstance().renderprocess_->InitRenderPassLayout();
         Context::GetInstance().swapchain_->createFramebuffers(width, height);
         Context::GetInstance().renderprocess_->InitPipeline(width, height);
+        Context::GetInstance().renderprocess_->CreateVertexBuffer();
         Context::GetInstance().render_.reset(new render());
     }
 

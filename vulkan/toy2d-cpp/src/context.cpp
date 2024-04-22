@@ -17,6 +17,8 @@ namespace toy2d
         Context::GetInstance().logicaldevice.destroyPipeline(renderprocess_->pipeline);
         Context::GetInstance().logicaldevice.destroyPipelineLayout(renderprocess_->pipelineLayout);
         Context::GetInstance().logicaldevice.destroyRenderPass(renderprocess_->renderPass);
+        Context::GetInstance().logicaldevice.destroyBuffer(renderprocess_->vertexBuffer);
+        Context::GetInstance().logicaldevice.freeMemory(renderprocess_->vertexBufferMemory);
         render_.reset();
         swapchain_.reset();
         instance_.reset();
