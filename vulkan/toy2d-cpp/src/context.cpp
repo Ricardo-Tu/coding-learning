@@ -131,7 +131,7 @@ namespace toy2d
 
             if (queueInfo.graphicsFamilyIndex.has_value() && queueInfo.presentFamilyIndex.has_value())
             {
-                std::cout << "graphicsFamilyIndex:" << queueInfo.graphicsFamilyIndex.value() << std::endl;
+                // std::cout << "graphicsFamilyIndex:" << queueInfo.graphicsFamilyIndex.value() << std::endl;
                 break;
             }
         }
@@ -145,7 +145,7 @@ namespace toy2d
         surface = rsf(instance);
         if (surface == nullptr)
         {
-            std::cout << "create surface failed" << std::endl;
+            std::cout << "1" << std::endl;
             exit(2);
         }
         PickupPhysicalDevice();
@@ -154,7 +154,7 @@ namespace toy2d
         {
             graphicQueue = logicaldevice.getQueue(queueInfo.graphicsFamilyIndex.value(), 0);
             presentQueue = logicaldevice.getQueue(queueInfo.presentFamilyIndex.value(), 0);
-            std::cout << "graphicQueue:" << graphicQueue << std::endl;
+            // std::cout << "graphicQueue:" << graphicQueue << std::endl;
         }
     }
 
