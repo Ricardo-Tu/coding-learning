@@ -1,18 +1,13 @@
 {
   "tasks": [
     {
-      "type": "cppbuild",
-      "label": "C/C++: gcc build active file",
+      "type": "shell",
+      "label": "rebuild-sandbox",
       "command": "/usr/bin/bash",
       "args": [
-        "${workspaceRoot}/vulkan/toy2d-cpp/compiler.sh",
+        "-c","cd ${workspaceRoot}/vulkan/toy2d-cpp && ./rebuild.sh",
       ],
-      "options": {
-        "cwd": "${fileDirname}"
-      },
-      "problemMatcher": [
-        "$gcc"
-      ],
+      "problemMatcher": [],
       "group": {
         "kind": "build",
         "isDefault": true

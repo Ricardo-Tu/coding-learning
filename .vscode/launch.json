@@ -3,15 +3,14 @@
   "configurations": [
     {
       "request": "launch",
-      "name": "gdb-debug-sandbox",
+      "name": "source-code-gdb-debug-sandbox",
       "program": "${workspaceRoot}/vulkan/toy2d-cpp/build/sandbox/sandbox",
       "type": "cppdbg",
       "cwd": "${workspaceRoot}/vulkan/toy2d-cpp/",
-      "stopAtEntry": true,
       "sourceFileMap": {
-        "/home/kali/ricardo/vulkan/coding-learning/vulkan/toy2d-cpp/sandbox/": "${workspaceRoot}/vulkan/toy2d-cpp/sandbox/",
-        "/home/kali/ricardo/vulkan/coding-learning/vulkan/toy2d-cpp/": "${workspaceRoot}/vulkan/toy2d-cpp/",
-        "/home/kali/ricardo/vulkan/coding-learning/vulkan/toy2d-cpp/src": "${workspaceRoot}/vulkan/toy2d-cpp/src"
+        "/home/ubuntu/zhonghui/vulkan/coding-learning/vulkan/toy2d-cpp/sandbox/": "${workspaceRoot}/vulkan/toy2d-cpp/sandbox/",
+        "/home/ubuntu/zhonghui/vulkan/coding-learning/vulkan/toy2d-cpp/": "${workspaceRoot}/vulkan/toy2d-cpp/",
+        "/home/ubuntu/zhonghui/vulkan/coding-learning/vulkan/toy2d-cpp/src": "${workspaceRoot}/vulkan/toy2d-cpp/src"
       },
       "args": [],
       "environment": [],
@@ -19,7 +18,22 @@
       "logging": {
         "engineLogging": false
       },
-      "MIMode": "gdb"
+      "MIMode": "gdb",
+      "preLaunchTask": "rebuild-sandbox"
+    },
+    {
+      "request": "launch",
+      "name": "assembly-clang-lldb-debug-sandbox",
+      "program": "${workspaceRoot}/vulkan/toy2d-cpp/build/sandbox/sandbox",
+      "type": "lldb",
+      "cwd": "${workspaceRoot}/vulkan/toy2d-cpp/",
+      "sourceMap": {
+        "/home/ubuntu/zhonghui/vulkan/coding-learning/vulkan/toy2d-cpp/sandbox/": "${workspaceRoot}/vulkan/toy2d-cpp/sandbox/",
+        "/home/ubuntu/zhonghui/vulkan/coding-learning/vulkan/toy2d-cpp/": "${workspaceRoot}/vulkan/toy2d-cpp/",
+        "/home/ubuntu/zhonghui/vulkan/coding-learning/vulkan/toy2d-cpp/src": "${workspaceRoot}/vulkan/toy2d-cpp/src"
+      },
+      "args": [],
+      "preLaunchTask": "rebuild-sandbox"
     }
   ]
 }

@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
                   SDL_Vulkan_CreateSurface(window, instance, (VkSurfaceKHR*)&surface);
                   return surface; },
         1024, 720);
-    auto &renderer = toy2d::GetRenderInstance(); 
+    auto &renderer = toy2d::GetRenderInstance();
 
     while (!shouldClose)
     {
