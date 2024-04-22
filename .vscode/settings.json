@@ -1,8 +1,6 @@
 {
     "C_Cpp.errorSquiggles": "disabled",
-    "C_Cpp.codeAnalysis.clangTidy.checks.disabled": [
-        "*"
-    ],
+    "C_Cpp.codeAnalysis.clangTidy.checks.disabled": [],
     "C_Cpp.default.enableConfigurationSquiggles": false,
     "files.associations": {
         "array": "cpp",
