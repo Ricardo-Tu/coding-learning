@@ -11,14 +11,19 @@ namespace toy2d
         cmdpool_ = Context::GetInstance().logicaldevice.createCommandPool(cmdcreateInfo);
     }
 
-    void render::InitCmdBuffer()
+    std::vector<vk::CommandBuffer> render::CreateCommandBuffer(uint32_t CommandBufferCount)
     {
         vk::CommandBufferAllocateInfo allocInfo;
         allocInfo.setCommandPool(cmdpool_)
-            .setCommandBufferCount(maxFlightCount_)
+            .setCommandBufferCount(CommandBufferCount)
             .setLevel(vk::CommandBufferLevel::ePrimary);
 
-        cmdbuffer_ = Context::GetInstance().logicaldevice.allocateCommandBuffers(allocInfo);
+        return Context::GetInstance().logicaldevice.allocateCommandBuffers(allocInfo);
+    }
+
+    void render::InitCmdBuffer()
+    {
+        cmdbuffer_ = CreateCommandBuffer(maxFlightCount_);
     }
 
     void render::DrawColorTriangle()
@@ -54,7 +59,7 @@ namespace toy2d
                 .setClearValueCount(1)
                 .setClearValues(clearValue);
 
-            cmdbuffer_[currentFrame_].bindVertexBuffers(0, {Context::GetInstance().renderprocess_->vertexBuffer}, {0});
+            cmdbuffer_[currentFrame_].bindVertexBuffers(0, {Context::GetInstance().renderprocess_->gpuVertexBuffer}, {0});
 
             cmdbuffer_[currentFrame_].beginRenderPass(beginInfo, vk::SubpassContents::eInline);
             {

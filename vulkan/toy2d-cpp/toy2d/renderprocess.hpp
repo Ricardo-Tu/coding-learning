@@ -18,11 +18,15 @@ namespace toy2d
         vk::RenderPass renderPass;
         vk::Pipeline pipeline;
         vk::PipelineLayout pipelineLayout;
-        vk::Buffer vertexBuffer;
-        vk::DeviceMemory vertexBufferMemory;
+        vk::Buffer hostVertexBuffer;
+        vk::Buffer gpuVertexBuffer;
+        vk::DeviceMemory hostBufferMemory;
+        vk::DeviceMemory gpuBufferMemory;
         void InitRenderPass();
         void InitRenderPassLayout();
         void InitPipeline(int width, int height);
+        vk::DeviceMemory CreateDeviceMemory(vk::Buffer buf, vk::MemoryPropertyFlags flags);
+        vk::Buffer CreateVkBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage);
         void CreateVertexBuffer();
         RenderProcess();
         ~RenderProcess();

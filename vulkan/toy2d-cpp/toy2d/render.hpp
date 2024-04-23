@@ -19,6 +19,7 @@ namespace toy2d
         std::vector<vk::Fence> fence_;
         void InitCmdPool();
         void InitCmdBuffer();
+        std::vector<vk::CommandBuffer> CreateCommandBuffer(uint32_t CommandBufferCount);
 
     private:
         uint32_t maxFlightCount_;

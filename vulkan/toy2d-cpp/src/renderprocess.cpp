@@ -138,38 +138,73 @@ namespace toy2d
         pipeline = result.value;
     }
 
-    void RenderProcess::CreateVertexBuffer()
+    vk::DeviceMemory RenderProcess::CreateDeviceMemory(vk::Buffer buf, vk::MemoryPropertyFlags flags)
     {
-        vk::BufferCreateInfo bufferCreateInfo;
         vk::Device logicaldevice = Context::GetInstance().logicaldevice;
-        bufferCreateInfo.setSize(vertices.size() * sizeof(Vertex))
-            .setUsage(vk::BufferUsageFlagBits::eVertexBuffer)
-            .setSharingMode(vk::SharingMode::eExclusive);
-        vertexBuffer = logicaldevice.createBuffer(bufferCreateInfo);
-        assert(vertexBuffer != nullptr);
-
-        vk::MemoryRequirements memoryRequirements = logicaldevice.getBufferMemoryRequirements(vertexBuffer);
+        vk::MemoryRequirements memoryRequirements = logicaldevice.getBufferMemoryRequirements(buf);
         vk::MemoryAllocateInfo memoryAllocateInfo;
         vk::PhysicalDeviceMemoryProperties properties = Context::GetInstance().physicalDevice.getMemoryProperties();
-        uint32_t memorytypeIndex = 0; // find memory type index
+        uint32_t memorytypeIndex = 0;
+
         for (uint32_t i = 0; i < properties.memoryTypeCount; i++)
         {
-            if ((memoryRequirements.memoryTypeBits & (1 << i)) && (properties.memoryTypes[i].propertyFlags & vk::MemoryPropertyFlagBits::eHostVisible))
+            if ((memoryRequirements.memoryTypeBits & (1 << i)) && (properties.memoryTypes[i].propertyFlags & flags))
             {
                 memorytypeIndex = i;
                 break;
             }
         }
+
         memoryAllocateInfo.setAllocationSize(memoryRequirements.size)
             .setMemoryTypeIndex(memorytypeIndex);
-        vertexBufferMemory = logicaldevice.allocateMemory(memoryAllocateInfo);
-        assert(vertexBufferMemory != nullptr);
+        vk::DeviceMemory retMemory = logicaldevice.allocateMemory(memoryAllocateInfo);
+        assert(retMemory != nullptr);
+        return retMemory;
+    }
 
-        logicaldevice.bindBufferMemory(vertexBuffer, vertexBufferMemory, 0);
+    vk::Buffer RenderProcess::CreateVkBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage)
+    {
+        vk::BufferCreateInfo bufferCreateInfo;
+        bufferCreateInfo.setSize(vertices.size() * sizeof(Vertex))
+            .setUsage(usage)
+            .setSharingMode(vk::SharingMode::eExclusive);
+        vk::Buffer retBuf = Context::GetInstance().logicaldevice.createBuffer(bufferCreateInfo);
+        assert(retBuf != nullptr);
+        return retBuf;
+    }
 
-        void *data = logicaldevice.mapMemory(vertexBufferMemory, 0, sizeof(vertices)); // map memory
-        memcpy(data, vertices.data(), vertices.size() * sizeof(Vertex));
-        logicaldevice.unmapMemory(vertexBufferMemory);
+    void RenderProcess::CreateVertexBuffer()
+    {
+        vk::Device logicaldevice = Context::GetInstance().logicaldevice;
+        hostVertexBuffer = CreateVkBuffer(vertices.size() * sizeof(Vertex), vk::BufferUsageFlagBits::eTransferSrc);
+        hostBufferMemory = CreateDeviceMemory(hostVertexBuffer, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+        logicaldevice.bindBufferMemory(hostVertexBuffer, hostBufferMemory, 0);
+
+        void *ptr = logicaldevice.mapMemory(hostBufferMemory, 0, sizeof(vertices)); // map memory
+        memcpy(ptr, vertices.data(), vertices.size() * sizeof(Vertex));
+        logicaldevice.unmapMemory(hostBufferMemory);
+
+        gpuVertexBuffer = CreateVkBuffer(vertices.size() * sizeof(Vertex), vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer);
+        gpuBufferMemory = CreateDeviceMemory(gpuVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
+        logicaldevice.bindBufferMemory(gpuVertexBuffer, gpuBufferMemory, 0);
+
+        vk::CommandBuffer cmdbuf = Context::GetInstance().render_->CreateCommandBuffer(1)[0];
+        vk::CommandBufferBeginInfo begin;
+        begin.setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
+        cmdbuf.begin(begin);
+        {
+            vk::BufferCopy copy;
+            copy.setSize(vertices.size() * sizeof(Vertex))
+                .setSrcOffset(0)
+                .setDstOffset(0);
+            cmdbuf.copyBuffer(hostVertexBuffer, gpuVertexBuffer, copy);
+        }
+        cmdbuf.end();
+        vk::SubmitInfo submit;
+        submit.setCommandBuffers(cmdbuf);
+        Context::GetInstance().graphicQueue.submit(submit, nullptr);
+        Context::GetInstance().logicaldevice.waitIdle();
+        Context::GetInstance().logicaldevice.freeCommandBuffers(Context::GetInstance().render_->cmdpool_, cmdbuf);
     }
 
     RenderProcess::RenderProcess()
