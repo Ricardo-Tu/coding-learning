@@ -28,17 +28,17 @@ namespace toy2d
 
     void render::UpdateUniformBuffer(uint32_t CurrentUniformBufIndex)
     {
+        MVP tmvp;
         static auto startTime = std::chrono::high_resolution_clock::now();
-
         auto currentTime = std::chrono::high_resolution_clock::now();
         float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
-        mvp.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        mvp.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        mvp.project = glm::perspective(glm::radians(45.0f), Context::GetInstance().swapchain_->swapchaininfo.extent.width / (float)Context::GetInstance().swapchain_->swapchaininfo.extent.height, 0.1f, 10.0f);
-        mvp.project[1][1] *= -1;
+        tmvp.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        tmvp.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        tmvp.project = glm::perspective(glm::radians(45.0f), Context::GetInstance().swapchain_->swapchaininfo.extent.width / (float)Context::GetInstance().swapchain_->swapchaininfo.extent.height, 0.1f, 10.0f);
+        tmvp.project[1][1] *= -1;
 
-        memcpy(Context::GetInstance().renderprocess_->hostUniformBufferMemoryPtr[CurrentUniformBufIndex], &mvp, sizeof(mvp));
+        memcpy(Context::GetInstance().renderprocess_->hostUniformBufferMemoryPtr[CurrentUniformBufIndex], &tmvp, sizeof(mvp));
     }
 
     void render::DrawColorTriangle()
@@ -64,22 +64,6 @@ namespace toy2d
         cmdbuffer_[currentFrame_].begin(begin);
         {
             cmdbuffer_[currentFrame_].bindPipeline(vk::PipelineBindPoint::eGraphics, Context::GetInstance().renderprocess_->pipeline);
-            // view port and scissor
-            vk::Viewport viewport;
-            vk::Rect2D scissor;
-            viewport.setX(0.0f)
-                .setY(0.0f)
-                .setWidth(Context::GetInstance().swapchain_->swapchaininfo.extent.width)
-                .setHeight(Context::GetInstance().swapchain_->swapchaininfo.extent.height)
-                .setMinDepth(0.0f)
-                .setMaxDepth(1.0f);
-            cmdbuffer_[currentFrame_].setViewport(0, viewport);
-
-            vk::Rect2D scissorRect;
-            scissor.setExtent(Context::GetInstance().swapchain_->swapchaininfo.extent)
-                .setOffset({0, 0});
-            cmdbuffer_[currentFrame_].setScissor(0, scissor);
-
             vk::RenderPassBeginInfo beginInfo;
             vk::Rect2D renderArea;
             vk::ClearValue clearValue;
@@ -92,11 +76,25 @@ namespace toy2d
                 .setClearValueCount(1)
                 .setClearValues(clearValue);
 
-            cmdbuffer_[currentFrame_].bindVertexBuffers(0, {Context::GetInstance().renderprocess_->gpuVertexBuffer}, {0});
-            cmdbuffer_[currentFrame_].bindDescriptorSets(vk::PipelineBindPoint::eGraphics, Context::GetInstance().renderprocess_->pipelineLayout, 0, Context::GetInstance().renderprocess_->descriptorSets[currentFrame_], {});
-
             cmdbuffer_[currentFrame_].beginRenderPass(beginInfo, vk::SubpassContents::eInline);
             {
+                // view port and scissor
+                vk::Viewport viewport;
+                vk::Rect2D scissor;
+                viewport.setX(0.0f)
+                    .setY(0.0f)
+                    .setWidth(Context::GetInstance().swapchain_->swapchaininfo.extent.width)
+                    .setHeight(Context::GetInstance().swapchain_->swapchaininfo.extent.height)
+                    .setMinDepth(0.0f)
+                    .setMaxDepth(1.0f);
+                cmdbuffer_[currentFrame_].setViewport(0, viewport);
+
+                vk::Rect2D scissorRect;
+                scissor.setExtent(Context::GetInstance().swapchain_->swapchaininfo.extent)
+                    .setOffset({0, 0});
+                cmdbuffer_[currentFrame_].setScissor(0, scissor);
+                cmdbuffer_[currentFrame_].bindVertexBuffers(0, {Context::GetInstance().renderprocess_->gpuVertexBuffer}, {0});
+                cmdbuffer_[currentFrame_].bindDescriptorSets(vk::PipelineBindPoint::eGraphics, Context::GetInstance().renderprocess_->pipelineLayout, 0, Context::GetInstance().renderprocess_->descriptorSets[currentFrame_], {});
                 cmdbuffer_[currentFrame_].draw(3, 1, 0, 0);
             }
             cmdbuffer_[currentFrame_].endRenderPass();

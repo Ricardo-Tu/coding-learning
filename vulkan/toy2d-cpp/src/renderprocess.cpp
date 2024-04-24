@@ -132,11 +132,12 @@ namespace toy2d
         // 4. viewport
         vk::PipelineViewportStateCreateInfo viewportState;
         vk::Viewport viewport(0, 0, width, height, 0, 1);
-        // viewportState.setViewports(viewport);
-        // vk::Rect2D rect({0, 0}, {static_cast<uint32_t>(width), static_cast<uint32_t>(height)});
-        // viewportState.setScissors(rect);
+        viewportState.setViewports(viewport);
+        vk::Rect2D rect({0, 0}, {static_cast<uint32_t>(width), static_cast<uint32_t>(height)});
+        viewportState.setScissors(rect);
         viewportState.setViewportCount(1)
-            .setScissorCount(1);
+            .setScissorCount(1)
+            .setScissors(rect);
         pipelinecreateinfo.setPViewportState(&viewportState);
 
         // 4. Rasterization
