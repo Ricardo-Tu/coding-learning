@@ -16,16 +16,17 @@ namespace toy2d
     {
         Context::GetInstance().logicaldevice.destroyPipeline(renderprocess_->pipeline);
         Context::GetInstance().logicaldevice.destroyPipelineLayout(renderprocess_->pipelineLayout);
-        for (auto &descriptorSetLayout : renderprocess_->descriptorSetLayouts)
-        {
-            Context::GetInstance().logicaldevice.destroyDescriptorSetLayout(descriptorSetLayout);
-        }
+        Context::GetInstance().logicaldevice.destroyDescriptorSetLayout(renderprocess_->descriptorSetLayouts[0]);
         Context::GetInstance().logicaldevice.destroyDescriptorPool(renderprocess_->descriptorPool);
         Context::GetInstance().logicaldevice.destroyRenderPass(renderprocess_->renderPass);
         Context::GetInstance().logicaldevice.destroyBuffer(renderprocess_->hostVertexBuffer);
         Context::GetInstance().logicaldevice.destroyBuffer(renderprocess_->gpuVertexBuffer);
+        for (auto &hostUniformBuffer : renderprocess_->hostUniformBuffer)
+            Context::GetInstance().logicaldevice.destroyBuffer(hostUniformBuffer);
         Context::GetInstance().logicaldevice.freeMemory(renderprocess_->hostBufferMemory);
         Context::GetInstance().logicaldevice.freeMemory(renderprocess_->gpuBufferMemory);
+        for (auto &hostUniformBufferMemory : renderprocess_->hostUniformBufferMemory)
+            Context::GetInstance().logicaldevice.freeMemory(hostUniformBufferMemory);
         render_.reset();
         swapchain_.reset();
         instance_.reset();

@@ -64,6 +64,22 @@ namespace toy2d
         cmdbuffer_[currentFrame_].begin(begin);
         {
             cmdbuffer_[currentFrame_].bindPipeline(vk::PipelineBindPoint::eGraphics, Context::GetInstance().renderprocess_->pipeline);
+            // view port and scissor
+            vk::Viewport viewport;
+            vk::Rect2D scissor;
+            viewport.setX(0.0f)
+                .setY(0.0f)
+                .setWidth(Context::GetInstance().swapchain_->swapchaininfo.extent.width)
+                .setHeight(Context::GetInstance().swapchain_->swapchaininfo.extent.height)
+                .setMinDepth(0.0f)
+                .setMaxDepth(1.0f);
+            cmdbuffer_[currentFrame_].setViewport(0, viewport);
+
+            vk::Rect2D scissorRect;
+            scissor.setExtent(Context::GetInstance().swapchain_->swapchaininfo.extent)
+                .setOffset({0, 0});
+            cmdbuffer_[currentFrame_].setScissor(0, scissor);
+
             vk::RenderPassBeginInfo beginInfo;
             vk::Rect2D renderArea;
             vk::ClearValue clearValue;

@@ -80,7 +80,7 @@ namespace toy2d
         layoutCreateInfo.setBindings(layoutBinding)
             .setBindingCount(1);
 
-        descriptorSetLayouts.resize(count,Context::GetInstance().logicaldevice.createDescriptorSetLayout(layoutCreateInfo));
+        descriptorSetLayouts.resize(count, Context::GetInstance().logicaldevice.createDescriptorSetLayout(layoutCreateInfo));
 
         vk::DescriptorSetAllocateInfo allocateInfo;
         allocateInfo.setDescriptorPool(descriptorPool)
@@ -101,7 +101,7 @@ namespace toy2d
     void RenderProcess::InitPipeline(int width, int height)
     {
 
-        vk::GraphicsPipelineCreateInfo createinfo;
+        vk::GraphicsPipelineCreateInfo pipelinecreateinfo;
 
         // 1. vertex info
         vk::PipelineVertexInputStateCreateInfo vertexInput;
@@ -117,25 +117,27 @@ namespace toy2d
             .setVertexBindingDescriptions(bindingdescrip)
             .setVertexAttributeDescriptionCount(attribute.size())
             .setVertexAttributeDescriptions(attribute);
-        createinfo.setPVertexInputState(&vertexInput);
+        pipelinecreateinfo.setPVertexInputState(&vertexInput);
 
         // 2. vertex assembly
         vk::PipelineInputAssemblyStateCreateInfo inputAsm;
         inputAsm.setPrimitiveRestartEnable(false)
             .setTopology(vk::PrimitiveTopology::eTriangleList);
-        createinfo.setPInputAssemblyState(&inputAsm);
+        pipelinecreateinfo.setPInputAssemblyState(&inputAsm);
 
         // 3. shader
         auto stages = Shader::GetInstance().GetStage();
-        createinfo.setStages(stages);
+        pipelinecreateinfo.setStages(stages);
 
         // 4. viewport
         vk::PipelineViewportStateCreateInfo viewportState;
         vk::Viewport viewport(0, 0, width, height, 0, 1);
-        viewportState.setViewports(viewport);
-        vk::Rect2D rect({0, 0}, {static_cast<uint32_t>(width), static_cast<uint32_t>(height)});
-        viewportState.setScissors(rect);
-        createinfo.setPViewportState(&viewportState);
+        // viewportState.setViewports(viewport);
+        // vk::Rect2D rect({0, 0}, {static_cast<uint32_t>(width), static_cast<uint32_t>(height)});
+        // viewportState.setScissors(rect);
+        viewportState.setViewportCount(1)
+            .setScissorCount(1);
+        pipelinecreateinfo.setPViewportState(&viewportState);
 
         // 4. Rasterization
         vk::PipelineRasterizationStateCreateInfo rastinfo;
@@ -144,13 +146,13 @@ namespace toy2d
             .setFrontFace(vk::FrontFace::eClockwise)
             .setPolygonMode(vk::PolygonMode::eFill)
             .setLineWidth(1.0f);
-        createinfo.setPRasterizationState(&rastinfo);
+        pipelinecreateinfo.setPRasterizationState(&rastinfo);
 
         // 5. multisample
         vk::PipelineMultisampleStateCreateInfo sample;
         sample.setSampleShadingEnable(false)
             .setRasterizationSamples(vk::SampleCountFlagBits::e1);
-        createinfo.setPMultisampleState(&sample);
+        pipelinecreateinfo.setPMultisampleState(&sample);
 
         // 6. test  pass
 
@@ -161,10 +163,21 @@ namespace toy2d
             .setColorWriteMask(vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
         blend.setLogicOpEnable(false)
             .setAttachments(blendAttachment);
-        createinfo.setPColorBlendState(&blend)
+
+        // 8. dynamic state
+        std::vector<vk::DynamicState> dynamicStates = {
+            vk::DynamicState::eViewport,
+            vk::DynamicState::eScissor};
+        vk::PipelineDynamicStateCreateInfo dynmaicCreateInfo;
+        dynmaicCreateInfo.setDynamicStateCount(dynamicStates.size())
+            .setDynamicStates(dynamicStates);
+
+        pipelinecreateinfo.setPColorBlendState(&blend)
             .setRenderPass(renderPass)
-            .setLayout(pipelineLayout);
-        auto result = Context::GetInstance().logicaldevice.createGraphicsPipeline(nullptr, createinfo);
+            .setLayout(pipelineLayout)
+            .setPDynamicState(&dynmaicCreateInfo);
+
+        auto result = Context::GetInstance().logicaldevice.createGraphicsPipeline(nullptr, pipelinecreateinfo);
         if (result.result != vk::Result::eSuccess)
         {
             std::cout << "create pipeline failed" << std::endl;
@@ -222,7 +235,7 @@ namespace toy2d
     vk::Buffer RenderProcess::CreateVkBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage)
     {
         vk::BufferCreateInfo bufferCreateInfo;
-        bufferCreateInfo.setSize(vertices.size() * sizeof(Vertex))
+        bufferCreateInfo.setSize(size)
             .setUsage(usage)
             .setSharingMode(vk::SharingMode::eExclusive);
         vk::Buffer retBuf = Context::GetInstance().logicaldevice.createBuffer(bufferCreateInfo);
