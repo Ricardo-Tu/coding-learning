@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <vector>
+#include <chrono>
 #include <vulkan/vulkan.hpp>
 
 namespace toy2d
@@ -8,6 +9,7 @@ namespace toy2d
     class render final
     {
     public:
+        void UpdateUniformBuffer(uint32_t CurrentUniformBufIndex);
         void DrawColorTriangle();
         render(uint32_t maxFlightCount = 2);
         ~render();
@@ -20,9 +22,9 @@ namespace toy2d
         void InitCmdPool();
         void InitCmdBuffer();
         std::vector<vk::CommandBuffer> CreateCommandBuffer(uint32_t CommandBufferCount);
+        uint32_t maxFramesCount_ = 2;
 
     private:
-        uint32_t maxFlightCount_;
         uint32_t currentFrame_ = 0;
     };
 }

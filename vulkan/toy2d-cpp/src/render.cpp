@@ -23,7 +23,22 @@ namespace toy2d
 
     void render::InitCmdBuffer()
     {
-        cmdbuffer_ = CreateCommandBuffer(maxFlightCount_);
+        cmdbuffer_ = CreateCommandBuffer(maxFramesCount_);
+    }
+
+    void render::UpdateUniformBuffer(uint32_t CurrentUniformBufIndex)
+    {
+        static auto startTime = std::chrono::high_resolution_clock::now();
+
+        auto currentTime = std::chrono::high_resolution_clock::now();
+        float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+
+        mvp.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        mvp.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        mvp.project = glm::perspective(glm::radians(45.0f), Context::GetInstance().swapchain_->swapchaininfo.extent.width / (float)Context::GetInstance().swapchain_->swapchaininfo.extent.height, 0.1f, 10.0f);
+        mvp.project[1][1] *= -1;
+
+        memcpy(Context::GetInstance().renderprocess_->hostUniformBufferMemoryPtr[CurrentUniformBufIndex], &mvp, sizeof(mvp));
     }
 
     void render::DrawColorTriangle()
@@ -39,6 +54,8 @@ namespace toy2d
             throw std::runtime_error("failed to acquire next image");
 
         auto imageIndex = result.value;
+
+        UpdateUniformBuffer(currentFrame_);
 
         cmdbuffer_[currentFrame_].reset();
 
@@ -60,6 +77,7 @@ namespace toy2d
                 .setClearValues(clearValue);
 
             cmdbuffer_[currentFrame_].bindVertexBuffers(0, {Context::GetInstance().renderprocess_->gpuVertexBuffer}, {0});
+            cmdbuffer_[currentFrame_].bindDescriptorSets(vk::PipelineBindPoint::eGraphics, Context::GetInstance().renderprocess_->pipelineLayout, 0, Context::GetInstance().renderprocess_->descriptorSets[currentFrame_], {});
 
             cmdbuffer_[currentFrame_].beginRenderPass(beginInfo, vk::SubpassContents::eInline);
             {
@@ -89,19 +107,19 @@ namespace toy2d
         if (res != vk::Result::eSuccess)
             throw std::runtime_error("failed to present");
 
-        currentFrame_ = (currentFrame_ + 1) % maxFlightCount_;
+        currentFrame_ = (currentFrame_ + 1) % maxFramesCount_;
     }
 
-    render::render(uint32_t maxFlightCount) : maxFlightCount_(maxFlightCount), currentFrame_(0)
+    render::render(uint32_t maxFramesCount_) : maxFramesCount_(maxFramesCount_), currentFrame_(0)
     {
         vk::Device logicaldevice = Context::GetInstance().logicaldevice;
         vk::FenceCreateInfo fenceInfo;
         vk::SemaphoreCreateInfo semaphoreInfo;
-        fence_.resize(maxFlightCount_);
+        fence_.resize(maxFramesCount_);
         fenceInfo.setFlags(vk::FenceCreateFlagBits::eSignaled);
-        imageAvaliable_.resize(maxFlightCount_);
-        imageDrawFinsh_.resize(maxFlightCount_);
-        for (uint32_t i = 0; i < maxFlightCount_; i++)
+        imageAvaliable_.resize(maxFramesCount_);
+        imageDrawFinsh_.resize(maxFramesCount_);
+        for (uint32_t i = 0; i < maxFramesCount_; i++)
         {
             fence_[i] = logicaldevice.createFence(fenceInfo);
             imageAvaliable_[i] = logicaldevice.createSemaphore(semaphoreInfo);

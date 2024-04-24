@@ -9,6 +9,11 @@ namespace toy2d
         {{0.0f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
         {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}}};
 
+    MVP mvp = {
+        .model = glm::mat4(1.0f),
+        .view = glm::lookAt(glm::vec3(0, 0, 1), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0)),
+        .project = glm::perspective(glm::radians(45.0f), 1.0f, 0.1f, 10.0f)};
+
     void RenderProcess::InitRenderPass()
     {
         vk::RenderPassCreateInfo renderPassCreateInfo;
@@ -54,11 +59,41 @@ namespace toy2d
         renderPass = Context::GetInstance().logicaldevice.createRenderPass(renderPassCreateInfo);
     }
 
+    void RenderProcess::InitDescriptorSet(uint32_t count)
+    {
+        vk::DescriptorPoolCreateInfo poolCreateInfo;
+        vk::DescriptorPoolSize poolSize;
+        vk::DescriptorSetLayoutBinding layoutBinding;
+        poolSize.setType(vk::DescriptorType::eUniformBuffer)
+            .setDescriptorCount(count);
+        poolCreateInfo.setMaxSets(count)
+            .setPoolSizeCount(1)
+            .setPoolSizes(poolSize);
+        descriptorPool = Context::GetInstance().logicaldevice.createDescriptorPool(poolCreateInfo);
+        layoutBinding.setBinding(0)
+            .setDescriptorType(vk::DescriptorType::eUniformBuffer)
+            .setDescriptorCount(1)
+            .setStageFlags(vk::ShaderStageFlagBits::eVertex)
+            .setPImmutableSamplers(nullptr);
+
+        vk::DescriptorSetLayoutCreateInfo layoutCreateInfo;
+        layoutCreateInfo.setBindings(layoutBinding)
+            .setBindingCount(1);
+
+        descriptorSetLayouts.resize(count,Context::GetInstance().logicaldevice.createDescriptorSetLayout(layoutCreateInfo));
+
+        vk::DescriptorSetAllocateInfo allocateInfo;
+        allocateInfo.setDescriptorPool(descriptorPool)
+            .setDescriptorSetCount(count)
+            .setSetLayouts(descriptorSetLayouts);
+        descriptorSets = Context::GetInstance().logicaldevice.allocateDescriptorSets(allocateInfo);
+    }
+
     void RenderProcess::InitRenderPassLayout()
     {
         vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo;
-        pipelineLayoutCreateInfo.setSetLayoutCount(0)
-            .setPushConstantRangeCount(0);
+        pipelineLayoutCreateInfo.setSetLayoutCount(1)
+            .setSetLayouts(descriptorSetLayouts);
         pipelineLayout = Context::GetInstance().logicaldevice.createPipelineLayout(pipelineLayoutCreateInfo);
         assert(pipelineLayout != nullptr);
     }
@@ -162,6 +197,28 @@ namespace toy2d
         return retMemory;
     }
 
+    void RenderProcess::CreateCommandDescriptorSets()
+    {
+        for (uint32_t i = 0; i < descriptorSets.size(); i++)
+        {
+            auto &set = descriptorSets[i];
+            vk::DescriptorBufferInfo bufferInfo;
+            bufferInfo.setBuffer(hostUniformBuffer[i])
+                .setOffset(0)
+                .setRange(sizeof(MVP));
+
+            vk::WriteDescriptorSet descriptorWrite;
+            descriptorWrite.setDstSet(descriptorSets[i])
+                .setDstBinding(0)
+                .setDstArrayElement(0)
+                .setDescriptorType(vk::DescriptorType::eUniformBuffer)
+                .setDescriptorCount(1)
+                .setPBufferInfo(&bufferInfo);
+
+            Context::GetInstance().logicaldevice.updateDescriptorSets({descriptorWrite}, {});
+        }
+    }
+
     vk::Buffer RenderProcess::CreateVkBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage)
     {
         vk::BufferCreateInfo bufferCreateInfo;
@@ -182,7 +239,7 @@ namespace toy2d
 
         void *ptr = logicaldevice.mapMemory(hostBufferMemory, 0, sizeof(vertices)); // map memory
         memcpy(ptr, vertices.data(), vertices.size() * sizeof(Vertex));
-        logicaldevice.unmapMemory(hostBufferMemory);
+        // logicaldevice.unmapMemory(hostBufferMemory); // unmap memory when you don't need it forever,otherwise don't do it.
 
         gpuVertexBuffer = CreateVkBuffer(vertices.size() * sizeof(Vertex), vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer);
         gpuBufferMemory = CreateDeviceMemory(gpuVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
@@ -205,6 +262,21 @@ namespace toy2d
         Context::GetInstance().graphicQueue.submit(submit, nullptr);
         Context::GetInstance().logicaldevice.waitIdle();
         Context::GetInstance().logicaldevice.freeCommandBuffers(Context::GetInstance().render_->cmdpool_, cmdbuf);
+    }
+
+    void RenderProcess::CreateUniformBuffer(uint32_t count)
+    {
+        hostUniformBuffer.resize(count);
+        hostUniformBufferMemory.resize(count);
+        hostUniformBufferMemoryPtr.resize(count);
+        for (uint32_t index = 0; index < count; index++)
+        {
+            vk::Device logicaldevice = Context::GetInstance().logicaldevice;
+            hostUniformBuffer[index] = CreateVkBuffer(sizeof(glm::mat4) * 3, vk::BufferUsageFlagBits::eUniformBuffer);
+            hostUniformBufferMemory[index] = CreateDeviceMemory(hostUniformBuffer[index], vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+            logicaldevice.bindBufferMemory(hostUniformBuffer[index], hostUniformBufferMemory[index], 0);
+            hostUniformBufferMemoryPtr[index] = logicaldevice.mapMemory(hostUniformBufferMemory[index], 0, sizeof(glm::mat4));
+        }
     }
 
     RenderProcess::RenderProcess()

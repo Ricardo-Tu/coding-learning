@@ -16,6 +16,11 @@ namespace toy2d
     {
         Context::GetInstance().logicaldevice.destroyPipeline(renderprocess_->pipeline);
         Context::GetInstance().logicaldevice.destroyPipelineLayout(renderprocess_->pipelineLayout);
+        for (auto &descriptorSetLayout : renderprocess_->descriptorSetLayouts)
+        {
+            Context::GetInstance().logicaldevice.destroyDescriptorSetLayout(descriptorSetLayout);
+        }
+        Context::GetInstance().logicaldevice.destroyDescriptorPool(renderprocess_->descriptorPool);
         Context::GetInstance().logicaldevice.destroyRenderPass(renderprocess_->renderPass);
         Context::GetInstance().logicaldevice.destroyBuffer(renderprocess_->hostVertexBuffer);
         Context::GetInstance().logicaldevice.destroyBuffer(renderprocess_->gpuVertexBuffer);
