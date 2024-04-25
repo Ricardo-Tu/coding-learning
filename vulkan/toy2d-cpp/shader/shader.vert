@@ -20,19 +20,22 @@
 //}
 
 #version 450
-layout(location = 0) in vec3 positions;
-layout(location = 1) in vec3 colors;
-layout(location = 0) out vec3 fragColor;
+
 layout(binding = 0) uniform UniformBufferObject {
     mat4 model;
     mat4 view;
     mat4 project;
 } mvp;
 
+
+layout(location = 0) in vec3 positions;
+layout(location = 1) in vec3 colors;
+layout(location = 0) out vec3 fragColor;
 void main()
 {
+    gl_Position = mvp.project * mvp.view * mvp.model * vec4(positions, 1.0);
+    // gl_Position = vec4(positions, 1.0);
     fragColor = colors;
-    gl_Position = mvp.model * mvp.view * mvp.project * vec4(positions, 1.0);
     // gl_Position = vec4(positions, 1.0);
     // fragColor = inColor;
     // gl_Position = vec4(inPosition, 0.0, 1.0);

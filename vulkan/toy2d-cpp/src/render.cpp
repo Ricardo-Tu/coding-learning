@@ -35,10 +35,10 @@ namespace toy2d
 
         tmvp.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
         tmvp.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        tmvp.project = glm::perspective(glm::radians(45.0f), Context::GetInstance().swapchain_->swapchaininfo.extent.width / (float)Context::GetInstance().swapchain_->swapchaininfo.extent.height, 0.1f, 10.0f);
+        tmvp.project = glm::perspective(glm::radians(45.0f), (float)Context::GetInstance().swapchain_->swapchaininfo.extent.width / (float)Context::GetInstance().swapchain_->swapchaininfo.extent.height, 0.1f, 10.0f);
         tmvp.project[1][1] *= -1;
 
-        memcpy(Context::GetInstance().renderprocess_->hostUniformBufferMemoryPtr[CurrentUniformBufIndex], &tmvp, sizeof(mvp));
+        memcpy(Context::GetInstance().renderprocess_->hostUniformBufferMemoryPtr[CurrentUniformBufIndex], &tmvp, sizeof(MVP));
     }
 
     void render::DrawColorTriangle()
@@ -52,6 +52,8 @@ namespace toy2d
         auto result = logicaldevice.acquireNextImageKHR(Context::GetInstance().swapchain_->swapChain, UINT64_MAX, imageAvaliable_[currentFrame_]);
         if (result.result != vk::Result::eSuccess)
             throw std::runtime_error("failed to acquire next image");
+        else if (result.result == vk::Result::eSuboptimalKHR || result.result == vk::Result::eErrorOutOfDateKHR)
+            std::cout << "need to recreate swapchain\n";
 
         auto imageIndex = result.value;
 
@@ -63,7 +65,6 @@ namespace toy2d
         begin.setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
         cmdbuffer_[currentFrame_].begin(begin);
         {
-            cmdbuffer_[currentFrame_].bindPipeline(vk::PipelineBindPoint::eGraphics, Context::GetInstance().renderprocess_->pipeline);
             vk::RenderPassBeginInfo beginInfo;
             vk::Rect2D renderArea;
             vk::ClearValue clearValue;
@@ -78,6 +79,7 @@ namespace toy2d
 
             cmdbuffer_[currentFrame_].beginRenderPass(beginInfo, vk::SubpassContents::eInline);
             {
+                cmdbuffer_[currentFrame_].bindPipeline(vk::PipelineBindPoint::eGraphics, Context::GetInstance().renderprocess_->pipeline);
                 // view port and scissor
                 vk::Viewport viewport;
                 vk::Rect2D scissor;
@@ -93,9 +95,10 @@ namespace toy2d
                 scissor.setExtent(Context::GetInstance().swapchain_->swapchaininfo.extent)
                     .setOffset({0, 0});
                 cmdbuffer_[currentFrame_].setScissor(0, scissor);
+                cmdbuffer_[currentFrame_].bindIndexBuffer(Context::GetInstance().renderprocess_->indexBuffer, 0, vk::IndexType::eUint32);
                 cmdbuffer_[currentFrame_].bindVertexBuffers(0, {Context::GetInstance().renderprocess_->gpuVertexBuffer}, {0});
                 cmdbuffer_[currentFrame_].bindDescriptorSets(vk::PipelineBindPoint::eGraphics, Context::GetInstance().renderprocess_->pipelineLayout, 0, Context::GetInstance().renderprocess_->descriptorSets[currentFrame_], {});
-                cmdbuffer_[currentFrame_].draw(3, 1, 0, 0);
+                cmdbuffer_[currentFrame_].drawIndexed(indices.size(), 1, 0, 0, 0);
             }
             cmdbuffer_[currentFrame_].endRenderPass();
         }
@@ -104,10 +107,11 @@ namespace toy2d
         vk::SubmitInfo submit;
         std::array<vk::PipelineStageFlags, 1> flag = {vk::PipelineStageFlagBits::eColorAttachmentOutput};
         submit.setCommandBuffers(cmdbuffer_[currentFrame_])
+            .setCommandBufferCount(1)
             .setWaitSemaphores(imageAvaliable_[currentFrame_])
+            .setWaitSemaphoreCount(1)
             .setWaitDstStageMask(flag)
             .setSignalSemaphores(imageDrawFinsh_[currentFrame_])
-            .setWaitSemaphoreCount(1)
             .setSignalSemaphoreCount(1);
 
         Context::GetInstance().graphicQueue.submit(submit, fence_[currentFrame_]);

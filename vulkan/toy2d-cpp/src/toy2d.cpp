@@ -13,14 +13,15 @@ namespace toy2d
         Context::GetInstance().renderprocess_.reset(new RenderProcess());
         Shader::Init(ReadWholeFile("vert.spv"), ReadWholeFile("frag.spv"));
         Context::GetInstance().renderprocess_->InitRenderPass();
-        Context::GetInstance().renderprocess_->InitDescriptorSet(Context::GetInstance().renderprocess_->maxFramesCount_);
         Context::GetInstance().renderprocess_->CreateUniformBuffer(Context::GetInstance().renderprocess_->maxFramesCount_);
+        Context::GetInstance().renderprocess_->InitDescriptorSet(Context::GetInstance().renderprocess_->maxFramesCount_);
         Context::GetInstance().renderprocess_->CreateCommandDescriptorSets();
         Context::GetInstance().renderprocess_->InitRenderPassLayout();
         Context::GetInstance().swapchain_->createFramebuffers(width, height);
         Context::GetInstance().renderprocess_->InitPipeline(width, height);
         Context::GetInstance().render_.reset(new render());
         Context::GetInstance().renderprocess_->CreateVertexBuffer();
+        Context::GetInstance().renderprocess_->CreateIndexBuffer();
     }
 
     void Quit()

@@ -28,9 +28,11 @@ namespace toy2d
         vk::DescriptorSetLayout descriptorSetLayout;
         vk::Buffer hostVertexBuffer;
         vk::Buffer gpuVertexBuffer;
+        vk::Buffer indexBuffer;
         std::vector<vk::Buffer> hostUniformBuffer;
         vk::DeviceMemory hostBufferMemory;
         vk::DeviceMemory gpuBufferMemory;
+        vk::DeviceMemory indexBufferMemory;
         std::vector<vk::DeviceMemory> hostUniformBufferMemory;
         vk::DescriptorPool descriptorPool;
         std::vector<vk::DescriptorSetLayout> descriptorSetLayouts;
@@ -42,8 +44,10 @@ namespace toy2d
         void InitDescriptorSet(uint32_t count);
         vk::DeviceMemory CreateDeviceMemory(vk::Buffer buf, vk::MemoryPropertyFlags flags);
         vk::Buffer CreateVkBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage);
+        void CopyBuffer(vk::Buffer srcBuffer, vk::Buffer dstBuffer, vk::DeviceSize size);
         void CreateCommandDescriptorSets();
         void CreateVertexBuffer();
+        void CreateIndexBuffer();
         void CreateUniformBuffer(uint32_t count);
         RenderProcess();
         ~RenderProcess();
@@ -52,4 +56,5 @@ namespace toy2d
     private:
     };
     extern MVP mvp;
+    extern std::vector<uint32_t> indices;
 }
