@@ -7,19 +7,23 @@
 #include <SDL2/SDL_vulkan.h>
 #include <SDL2/SDL_video.h>
 
-constexpr uint32_t WindowWidth = 1024;
-constexpr uint32_t WindowHeight = 720;
+void windowSizeChange()
+{
+    SDL_GetWindowSize(toy2d::window, (int *)&toy2d::WindowWidth, (int *)&toy2d::WindowHeight);
+    toy2d::framebufferResizeFlag = true;
+    std::cout << "window size change" << toy2d::WindowWidth << "  " << toy2d::WindowHeight << std::endl;
+}
 
 int main(int argc, char *argv[])
 {
 
     SDL_Init(SDL_INIT_EVENTS);
-    SDL_Window *window = SDL_CreateWindow("sandbox",
-                                          SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                                          WindowWidth, WindowHeight,
-                                          SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN);
+    toy2d::window = SDL_CreateWindow("sandbox",
+                                     SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                                     toy2d::WindowWidth, toy2d::WindowHeight,
+                                     SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN);
 
-    if (!window)
+    if (!toy2d::window)
     {
         SDL_Log("Create window failed");
         exit(2);
@@ -28,15 +32,15 @@ int main(int argc, char *argv[])
     bool shouldClose = false;
     SDL_Event event;
     uint32_t count = 0;
-    SDL_Vulkan_GetInstanceExtensions(window, &count, nullptr);
+    SDL_Vulkan_GetInstanceExtensions(toy2d::window, &count, nullptr);
     std::vector<const char *> extensions(count);
-    SDL_Vulkan_GetInstanceExtensions(window, &count, extensions.data());
+    SDL_Vulkan_GetInstanceExtensions(toy2d::window, &count, extensions.data());
     toy2d::Init(
         extensions, [&](vk::Instance instance) -> vk::SurfaceKHR
         { vk::SurfaceKHR surface;
-                  SDL_Vulkan_CreateSurface(window, instance, (VkSurfaceKHR*)&surface);
+                  SDL_Vulkan_CreateSurface(toy2d::window , instance, (VkSurfaceKHR*)&surface);
                   return surface; },
-        1024, 720);
+        toy2d::WindowWidth, toy2d::WindowHeight);
     auto &renderer = toy2d::GetRenderInstance();
 
     while (!shouldClose)
@@ -47,12 +51,16 @@ int main(int argc, char *argv[])
             {
                 shouldClose = true;
             }
+            else if (event.type == SDL_WINDOWEVENT_RESIZED)
+            {
+                windowSizeChange();
+            }
         }
         renderer.DrawColorTriangle();
     }
 
     toy2d::Quit();
-    SDL_DestroyWindow(window);
+    SDL_DestroyWindow(toy2d::window);
     SDL_Quit();
 
     // SDL_Init(SDL_INIT_EVERYTHING);

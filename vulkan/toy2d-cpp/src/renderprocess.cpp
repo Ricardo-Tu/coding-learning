@@ -10,7 +10,7 @@ namespace toy2d
         {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
         {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}}};
 
-    std::vector<uint32_t> indices = {1, 2, 3, 0, 1, 2};
+    std::vector<uint32_t> indices = {0, 1, 2, 2, 3, 0};
 
     MVP mvp = {};
 
@@ -44,15 +44,17 @@ namespace toy2d
         vk::SubpassDependency dependency;
         dependency.setSrcSubpass(VK_SUBPASS_EXTERNAL)
             .setDstSubpass(0)
+            .setDstStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput)
             .setDstAccessMask(vk::AccessFlagBits::eColorAttachmentWrite)
             .setSrcStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput)
-            .setDstStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput);
+            .setSrcAccessMask(vk::AccessFlagBits::eNone);
 
         renderPassCreateInfo.setSubpasses(subpass)
             .setSubpassCount(1)
             .setPAttachments(&colorAttachmentDescription)
+            .setAttachmentCount(1)
             .setDependencies(dependency)
-            .setAttachmentCount(1);
+            .setDependencyCount(1);
 
         // 5. create renderpass
         assert(Context::GetInstance().logicaldevice != nullptr);
@@ -74,7 +76,7 @@ namespace toy2d
         layoutBinding.setBinding(0)
             .setDescriptorType(vk::DescriptorType::eUniformBuffer)
             .setDescriptorCount(1)
-            .setStageFlags(vk::ShaderStageFlagBits::eVertex)
+            .setStageFlags(vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment)
             .setPImmutableSamplers(nullptr);
 
         vk::DescriptorSetLayoutCreateInfo layoutCreateInfo;
@@ -126,7 +128,7 @@ namespace toy2d
         assert(pipelineLayout != nullptr);
     }
 
-    void RenderProcess::InitPipeline(int width, int height)
+    void RenderProcess::InitPipeline()
     {
 
         vk::GraphicsPipelineCreateInfo pipelinecreateinfo;
@@ -159,13 +161,13 @@ namespace toy2d
 
         // 4. viewport
         vk::PipelineViewportStateCreateInfo viewportState;
-        vk::Viewport viewport(0, 0, width, height, 0, 1);
+        vk::Viewport viewport(0, 0, Context::GetInstance().swapchain_->swapchaininfo.extent.width, Context::GetInstance().swapchain_->swapchaininfo.extent.height, 0, 1);
         viewportState.setViewports(viewport);
-        vk::Rect2D rect({0, 0}, {static_cast<uint32_t>(width), static_cast<uint32_t>(height)});
+        vk::Rect2D rect({0, 0}, {static_cast<uint32_t>(Context::GetInstance().swapchain_->swapchaininfo.extent.width), static_cast<uint32_t>(Context::GetInstance().swapchain_->swapchaininfo.extent.height)});
         viewportState.setScissors(rect);
         viewportState.setViewportCount(1)
-            .setScissorCount(1)
-            .setScissors(rect);
+            .setScissorCount(1);
+        // .setScissors(rect);
         pipelinecreateinfo.setPViewportState(&viewportState);
 
         // 4. Rasterization
@@ -207,7 +209,9 @@ namespace toy2d
         pipelinecreateinfo.setPColorBlendState(&blend)
             .setRenderPass(renderPass)
             .setLayout(pipelineLayout)
-            .setPDynamicState(&dynmaicCreateInfo);
+            .setPDynamicState(&dynmaicCreateInfo)
+            .setSubpass(0)
+            .setBasePipelineHandle(nullptr);
 
         auto result = Context::GetInstance().logicaldevice.createGraphicsPipeline(nullptr, pipelinecreateinfo);
         if (result.result != vk::Result::eSuccess)

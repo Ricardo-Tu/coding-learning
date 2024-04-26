@@ -40,7 +40,7 @@ namespace toy2d
         std::vector<vk::DescriptorSet> descriptorSets;
         void InitRenderPass();
         void InitRenderPassLayout();
-        void InitPipeline(int width, int height);
+        void InitPipeline();
         void InitDescriptorSet(uint32_t count);
         vk::DeviceMemory CreateDeviceMemory(vk::Buffer buf, vk::MemoryPropertyFlags flags);
         vk::Buffer CreateVkBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage);

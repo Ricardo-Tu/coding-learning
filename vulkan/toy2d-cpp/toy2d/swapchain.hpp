@@ -24,7 +24,7 @@ namespace toy2d
         vk::SwapchainKHR swapChain;
         void queryInfo(int width, int height);
         void createImageandImageViews();
-        void createFramebuffers(int width, int height);
+        void createFramebuffers();
 
     private:
     };

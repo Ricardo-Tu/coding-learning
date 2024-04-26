@@ -5,6 +5,11 @@
 
 namespace toy2d
 {
+    SDL_Window *window = nullptr;
+    bool framebufferResizeFlag = false;
+    uint32_t WindowWidth = 1024;
+    uint32_t WindowHeight = 720;
+
     void Init(std::vector<const char *> extensions, std::function<vk::SurfaceKHR(vk::Instance)> retsurface, int width, int height)
     {
         // Context::Init(extensions, retsurface);
@@ -17,8 +22,8 @@ namespace toy2d
         Context::GetInstance().renderprocess_->InitDescriptorSet(Context::GetInstance().renderprocess_->maxFramesCount_);
         Context::GetInstance().renderprocess_->CreateCommandDescriptorSets();
         Context::GetInstance().renderprocess_->InitRenderPassLayout();
-        Context::GetInstance().swapchain_->createFramebuffers(width, height);
-        Context::GetInstance().renderprocess_->InitPipeline(width, height);
+        Context::GetInstance().swapchain_->createFramebuffers();
+        Context::GetInstance().renderprocess_->InitPipeline();
         Context::GetInstance().render_.reset(new render());
         Context::GetInstance().renderprocess_->CreateVertexBuffer();
         Context::GetInstance().renderprocess_->CreateIndexBuffer();
@@ -29,6 +34,13 @@ namespace toy2d
         Context::GetInstance().logicaldevice.waitIdle();
         Shader::Quit();
         Context::Quit();
+    }
+
+    void reCreateSwapChain()
+    {
+        Context::GetInstance().logicaldevice.waitIdle();
+        Context::GetInstance().swapchain_.reset(new Swapchain(toy2d::WindowWidth, toy2d::WindowHeight));
+        Context::GetInstance().swapchain_->createFramebuffers();
     }
 
     render &GetRenderInstance()

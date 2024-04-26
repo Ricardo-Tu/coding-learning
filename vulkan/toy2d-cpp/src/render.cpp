@@ -1,3 +1,4 @@
+#include "../toy2d/toy2d.hpp"
 #include "../toy2d/context.hpp"
 #include "../toy2d/render.hpp"
 
@@ -28,32 +29,40 @@ namespace toy2d
 
     void render::UpdateUniformBuffer(uint32_t CurrentUniformBufIndex)
     {
-        MVP tmvp;
         static auto startTime = std::chrono::high_resolution_clock::now();
         auto currentTime = std::chrono::high_resolution_clock::now();
         float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
-        tmvp.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        tmvp.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        tmvp.project = glm::perspective(glm::radians(45.0f), (float)Context::GetInstance().swapchain_->swapchaininfo.extent.width / (float)Context::GetInstance().swapchain_->swapchaininfo.extent.height, 0.1f, 10.0f);
-        tmvp.project[1][1] *= -1;
+        mvp.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        mvp.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        mvp.project = glm::perspective(glm::radians(45.0f), (float)Context::GetInstance().swapchain_->swapchaininfo.extent.width / (float)Context::GetInstance().swapchain_->swapchaininfo.extent.height, 0.1f, 10.0f);
+        mvp.project[1][1] *= 1;
 
-        memcpy(Context::GetInstance().renderprocess_->hostUniformBufferMemoryPtr[CurrentUniformBufIndex], &tmvp, sizeof(MVP));
+        memcpy(Context::GetInstance().renderprocess_->hostUniformBufferMemoryPtr[CurrentUniformBufIndex], &mvp, sizeof(MVP));
     }
 
     void render::DrawColorTriangle()
     {
         auto &logicaldevice = Context::GetInstance().logicaldevice;
         auto res = Context::GetInstance().logicaldevice.waitForFences(fence_[currentFrame_], vk::True, UINT64_MAX);
-        if (res != vk::Result::eSuccess)
+        if (res != vk::Result::eSuccess && res != vk::Result::eSuboptimalKHR)
+        {
             throw std::runtime_error("failed to wait for fence");
+        }
 
         logicaldevice.resetFences(fence_[currentFrame_]);
         auto result = logicaldevice.acquireNextImageKHR(Context::GetInstance().swapchain_->swapChain, UINT64_MAX, imageAvaliable_[currentFrame_]);
-        if (result.result != vk::Result::eSuccess)
-            throw std::runtime_error("failed to acquire next image");
-        else if (result.result == vk::Result::eSuboptimalKHR || result.result == vk::Result::eErrorOutOfDateKHR)
+
+        if (result.result == vk::Result::eErrorOutOfDateKHR)
+        {
+            reCreateSwapChain();
+            return;
+        }
+        else if (result.result != vk::Result::eSuccess && result.result != vk::Result::eSuboptimalKHR)
+        {
             std::cout << "need to recreate swapchain\n";
+            throw std::runtime_error("failed to acquire swapchain image");
+        }
 
         auto imageIndex = result.value;
 
@@ -122,7 +131,11 @@ namespace toy2d
             .setWaitSemaphores(imageDrawFinsh_[currentFrame_]);
 
         res = Context::GetInstance().presentQueue.presentKHR(present);
-        if (res != vk::Result::eSuccess)
+        if (res == vk::Result::eErrorOutOfDateKHR || res == vk::Result::eSuboptimalKHR || framebufferResizeFlag)
+        {
+            reCreateSwapChain();
+        }
+        else if (res != vk::Result::eSuccess)
             throw std::runtime_error("failed to present");
 
         currentFrame_ = (currentFrame_ + 1) % maxFramesCount_;

@@ -58,7 +58,7 @@ namespace toy2d
         }
     }
 
-    void Swapchain::createFramebuffers(int width, int height)
+    void Swapchain::createFramebuffers()
     {
         framebuffers.resize(images.size());
         for (int i = 0; i < images.size(); i++)
@@ -67,8 +67,8 @@ namespace toy2d
             fbcreateinfo.setRenderPass(Context::GetInstance().renderprocess_->renderPass)
                 .setAttachmentCount(1)
                 .setAttachments(imageviews[i])
-                .setWidth(width)
-                .setHeight(height)
+                .setWidth(Context::GetInstance().swapchain_->swapchaininfo.extent.width)
+                .setHeight(Context::GetInstance().swapchain_->swapchaininfo.extent.height)
                 .setLayers(1);
             framebuffers[i] = Context::GetInstance().logicaldevice.createFramebuffer(fbcreateinfo);
         }
@@ -90,7 +90,7 @@ namespace toy2d
             .setPresentMode(vk::PresentModeKHR::eFifo)
             .setPreTransform(swapchaininfo.transform)
             .setOldSwapchain(nullptr)
-            .setClipped(true)
+            .setClipped(vk::True)
             .setCompositeAlpha(vk::CompositeAlphaFlagBitsKHR::eOpaque);
 
         auto &queueIndexes = Context::GetInstance().queueInfo;
