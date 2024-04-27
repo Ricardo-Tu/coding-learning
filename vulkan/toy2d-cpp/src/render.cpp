@@ -53,14 +53,15 @@ namespace toy2d
         logicaldevice.resetFences(fence_[currentFrame_]);
         auto result = logicaldevice.acquireNextImageKHR(Context::GetInstance().swapchain_->swapChain, UINT64_MAX, imageAvaliable_[currentFrame_]);
 
-        if (result.result == vk::Result::eErrorOutOfDateKHR)
+        if (result.result == vk::Result::eErrorOutOfDateKHR || framebufferResizeFlag)
         {
+            std::cout << "1: need to recreate swapchain\n";
             reCreateSwapChain();
             return;
         }
         else if (result.result != vk::Result::eSuccess && result.result != vk::Result::eSuboptimalKHR)
         {
-            std::cout << "need to recreate swapchain\n";
+            std::cout << "1: need to recreate swapchain\n";
             throw std::runtime_error("failed to acquire swapchain image");
         }
 
@@ -133,12 +134,33 @@ namespace toy2d
         res = Context::GetInstance().presentQueue.presentKHR(present);
         if (res == vk::Result::eErrorOutOfDateKHR || res == vk::Result::eSuboptimalKHR || framebufferResizeFlag)
         {
+            std::cout << "2:need to recreate swapchain\n";
             reCreateSwapChain();
         }
         else if (res != vk::Result::eSuccess)
+        {
+            std::cout << "2:need to recreate swapchain\n";
             throw std::runtime_error("failed to present");
+        }
 
         currentFrame_ = (currentFrame_ + 1) % maxFramesCount_;
+    }
+
+    void render::createSampler()
+    {
+        vk::SamplerCreateInfo samplerInfo;
+        samplerInfo.setMagFilter(vk::Filter::eLinear)
+            .setMinFilter(vk::Filter::eLinear)
+            .setAddressModeU(vk::SamplerAddressMode::eRepeat)
+            .setAddressModeV(vk::SamplerAddressMode::eRepeat)
+            .setAddressModeW(vk::SamplerAddressMode::eRepeat)
+            .setAnisotropyEnable(vk::False)
+            .setBorderColor(vk::BorderColor::eIntOpaqueBlack)
+            .setUnnormalizedCoordinates(vk::False)
+            .setCompareEnable(vk::False)
+            .setMipmapMode(vk::SamplerMipmapMode::eLinear);
+
+        Context::GetInstance().sampler = Context::GetInstance().logicaldevice.createSampler(samplerInfo);
     }
 
     render::render(uint32_t maxFramesCount_) : maxFramesCount_(maxFramesCount_), currentFrame_(0)

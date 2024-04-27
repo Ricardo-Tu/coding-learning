@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
             {
                 shouldClose = true;
             }
-            else if (event.type == SDL_WINDOWEVENT_RESIZED)
+            else if (event.type == SDL_WINDOWEVENT_RESIZED || event.type == SDL_WINDOWEVENT_SIZE_CHANGED || event.type == SDL_WINDOWEVENT_RESTORED)
             {
                 windowSizeChange();
             }

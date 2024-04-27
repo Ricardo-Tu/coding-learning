@@ -41,6 +41,7 @@ namespace toy2d
         Context::GetInstance().logicaldevice.waitIdle();
         Context::GetInstance().swapchain_.reset(new Swapchain(toy2d::WindowWidth, toy2d::WindowHeight));
         Context::GetInstance().swapchain_->createFramebuffers();
+        toy2d::framebufferResizeFlag = false;
     }
 
     render &GetRenderInstance()

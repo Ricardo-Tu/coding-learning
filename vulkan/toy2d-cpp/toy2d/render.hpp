@@ -21,6 +21,7 @@ namespace toy2d
         std::vector<vk::Fence> fence_;
         void InitCmdPool();
         void InitCmdBuffer();
+        void createSampler();
         std::vector<vk::CommandBuffer> CreateCommandBuffer(uint32_t CommandBufferCount);
         uint32_t maxFramesCount_ = 2;
 
