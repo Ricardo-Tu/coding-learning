@@ -260,9 +260,9 @@ namespace toy2d
     void RenderProcess::CopyBuffer(vk::Buffer srcBuffer, vk::Buffer dstBuffer, vk::DeviceSize size)
     {
         vk::CommandBuffer cmdbuf = Context::GetInstance().render_->CreateCommandBuffer(1)[0];
-        vk::CommandBufferBeginInfo begin;
-        begin.setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
-        cmdbuf.begin(begin);
+        vk::CommandBufferBeginInfo beginInfo;
+        beginInfo.setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
+        cmdbuf.begin(beginInfo);
         {
             vk::BufferCopy copy;
             copy.setSize(size)

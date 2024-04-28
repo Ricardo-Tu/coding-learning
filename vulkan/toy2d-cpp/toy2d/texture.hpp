@@ -2,6 +2,9 @@
 #include <iostream>
 #include <string>
 #include <vulkan/vulkan.hpp>
+#include <string_view>
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 namespace toy2d
 {
     class texture
@@ -14,11 +17,11 @@ namespace toy2d
         ~texture();
         void createTextureImage(uint32_t width, uint32_t height);
         void allocateMemory();
-        void createImageView();
-        uint32_t queryImageMemoryIndex();
+        void generateTextureMipMap();
+        uint32_t queryImageMemoryIndex(uint32_t flag, vk::MemoryPropertyFlagBits property);
         void transitionImageLayoutFromUndefine2Dst();
+        void transformBufferdata2Image(vk::Buffer &buf, uint32_t width, uint32_t height);
         void transitionimageLayoutFromDst2Optimal();
-        void transformData2Image(gpuBuffer &buffer, uint32_t width, uint32_t height);
 
     private:
     };
