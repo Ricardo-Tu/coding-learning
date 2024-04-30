@@ -61,41 +61,39 @@ namespace toy2d
         renderPass = Context::GetInstance().logicaldevice.createRenderPass(renderPassCreateInfo);
     }
 
-    void RenderProcess::InitDescriptorSet(uint32_t count)
+    void RenderProcess::InitLayoutDescriptorSet(uint32_t count)
     {
-        vk::DescriptorPoolCreateInfo poolCreateInfo;
-        vk::DescriptorPoolSize poolSize;
-        vk::DescriptorSetLayoutBinding layoutBinding;
-        poolSize.setType(vk::DescriptorType::eUniformBuffer)
-            .setDescriptorCount(count);
-        poolCreateInfo.setMaxSets(count)
-            .setPoolSizeCount(1)
-            .setPoolSizes(poolSize);
-        descriptorPool = Context::GetInstance().logicaldevice.createDescriptorPool(poolCreateInfo);
+        // vk::DescriptorPoolCreateInfo poolCreateInfo;
+        // vk::DescriptorPoolSize poolSize;
+        std::vector<vk::DescriptorSetLayoutBinding> layoutBindings(2);
+        // poolSize.setType(vk::DescriptorType::eUniformBuffer)
+        //     .setDescriptorCount(maxFramesCount_);
+        // poolCreateInfo.setMaxSets(maxFramesCount_)
+        //     .setPoolSizeCount(1)
+        //     .setPoolSizes(poolSize);
+        // descriptorPool = Context::GetInstance().logicaldevice.createDescriptorPool(poolCreateInfo);
 
-        layoutBinding.setBinding(0)
-            .setDescriptorType(vk::DescriptorType::eUniformBuffer)
-            .setDescriptorCount(1)
-            .setStageFlags(vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment)
-            .setPImmutableSamplers(nullptr);
+        layoutBindings[0].setBinding(0).setDescriptorType(vk::DescriptorType::eUniformBuffer).setDescriptorCount(1).setStageFlags(vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment).setPImmutableSamplers(nullptr);
+
+        layoutBindings[1].setBinding(1).setDescriptorType(vk::DescriptorType::eCombinedImageSampler).setDescriptorCount(1).setStageFlags(vk::ShaderStageFlagBits::eFragment).setPImmutableSamplers(nullptr);
 
         vk::DescriptorSetLayoutCreateInfo layoutCreateInfo;
-        layoutCreateInfo.setBindings(layoutBinding)
-            .setBindingCount(1);
+        layoutCreateInfo.setBindings(layoutBindings)
+            .setBindingCount(layoutBindings.size());
 
         // descriptorSetLayouts.resize(count);
         // for (uint32_t i = 0; i < count; i++)
         // {
         // descriptorSetLayouts[i] = Context::GetInstance().logicaldevice.createDescriptorSetLayout(layoutCreateInfo);
         // }
-        descriptorSetLayouts.resize(count, Context::GetInstance().logicaldevice.createDescriptorSetLayout(layoutCreateInfo));
+        descriptorSetLayouts.resize(maxFramesCount_, Context::GetInstance().logicaldevice.createDescriptorSetLayout(layoutCreateInfo));
 
-        vk::DescriptorSetAllocateInfo allocateInfo;
-        allocateInfo.setDescriptorPool(descriptorPool)
-            .setDescriptorSetCount(count)
-            .setSetLayouts(descriptorSetLayouts);
-        descriptorSets.resize(count);
-        descriptorSets = Context::GetInstance().logicaldevice.allocateDescriptorSets(allocateInfo);
+        // vk::DescriptorSetAllocateInfo allocateInfo;
+        // allocateInfo.setDescriptorPool(descriptorPool)
+        //     .setDescriptorSetCount(maxFramesCount_)
+        //     .setSetLayouts(descriptorSetLayouts);
+        // descriptorSets.resize(maxFramesCount_);
+        // descriptorSets = Context::GetInstance().logicaldevice.allocateDescriptorSets(allocateInfo);
     }
 
     void RenderProcess::CreateCommandDescriptorSets()
@@ -136,10 +134,11 @@ namespace toy2d
         // 1. vertex info
         vk::PipelineVertexInputStateCreateInfo vertexInput;
         vk::VertexInputBindingDescription bindingdescrip;
-        std::array<vk::VertexInputAttributeDescription, 2> attribute;
+        std::array<vk::VertexInputAttributeDescription, 3> attribute;
 
         attribute[0].setBinding(0).setFormat(vk::Format::eR32G32B32Sfloat).setLocation(0).setOffset(offsetof(Vertex, pos));
         attribute[1].setBinding(0).setFormat(vk::Format::eR32G32B32Sfloat).setLocation(1).setOffset(offsetof(Vertex, color));
+        attribute[2].setBinding(0).setFormat(vk::Format::eR32G32Sfloat).setLocation(2).setOffset(offsetof(Vertex, texCoord));
         bindingdescrip.setBinding(0)
             .setStride(sizeof(Vertex))
             .setInputRate(vk::VertexInputRate::eVertex);

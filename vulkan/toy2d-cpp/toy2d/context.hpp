@@ -10,6 +10,7 @@
 #include "swapchain.hpp"
 #include "render.hpp"
 #include "renderprocess.hpp"
+#include "texture.hpp"
 
 namespace toy2d
 {
@@ -32,6 +33,7 @@ namespace toy2d
         static std::unique_ptr<RenderProcess> renderprocess_;
         static std::unique_ptr<render> render_;
         static std::unique_ptr<Context> instance_;
+        static std::unique_ptr<texture> texture_;
         vk::Instance CreateInstance(std::vector<const char *> extensions);
         vk::PhysicalDevice PickupPhysicalDevice();
         vk::Device CreateLogicalDevice();

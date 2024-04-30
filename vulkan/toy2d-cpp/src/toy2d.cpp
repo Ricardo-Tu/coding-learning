@@ -2,6 +2,7 @@
 #include "../toy2d/render.hpp"
 #include "../toy2d/context.hpp"
 #include "../toy2d/shader.hpp"
+#include "../toy2d/texture.hpp"
 
 namespace toy2d
 {
@@ -19,14 +20,17 @@ namespace toy2d
         Shader::Init(ReadWholeFile("vert.spv"), ReadWholeFile("frag.spv"));
         Context::GetInstance().renderprocess_->InitRenderPass();
         Context::GetInstance().renderprocess_->CreateUniformBuffer(Context::GetInstance().renderprocess_->maxFramesCount_);
-        Context::GetInstance().renderprocess_->InitDescriptorSet(Context::GetInstance().renderprocess_->maxFramesCount_);
-        Context::GetInstance().renderprocess_->CreateCommandDescriptorSets();
+        Context::GetInstance().renderprocess_->InitLayoutDescriptorSet(Context::GetInstance().renderprocess_->maxFramesCount_);
+        // Context::GetInstance().renderprocess_->CreateCommandDescriptorSets();
         Context::GetInstance().renderprocess_->InitRenderPassLayout();
         Context::GetInstance().swapchain_->createFramebuffers();
         Context::GetInstance().renderprocess_->InitPipeline();
         Context::GetInstance().render_.reset(new render());
         Context::GetInstance().renderprocess_->CreateVertexBuffer();
         Context::GetInstance().renderprocess_->CreateIndexBuffer();
+        Context::GetInstance().texture_.reset(new texture("./texture.jpg", Context::GetInstance().renderprocess_->maxFramesCount_));
+        Context::GetInstance().texture_->createDescriptorPool();
+        Context::GetInstance().texture_->createDescriptorSets();
     }
 
     void Quit()

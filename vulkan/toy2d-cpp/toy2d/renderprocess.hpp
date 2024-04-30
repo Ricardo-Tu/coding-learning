@@ -12,6 +12,7 @@ namespace toy2d
     {
         glm::vec3 pos;
         glm::vec3 color;
+        glm::vec2 texCoord;
     };
     struct MVP
     {
@@ -41,7 +42,7 @@ namespace toy2d
         void InitRenderPass();
         void InitRenderPassLayout();
         void InitPipeline();
-        void InitDescriptorSet(uint32_t count);
+        void InitLayoutDescriptorSet(uint32_t count);
         vk::DeviceMemory CreateDeviceMemory(vk::Buffer buf, vk::MemoryPropertyFlags flags);
         vk::Buffer CreateVkBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage);
         void CopyBuffer(vk::Buffer srcBuffer, vk::Buffer dstBuffer, vk::DeviceSize size);

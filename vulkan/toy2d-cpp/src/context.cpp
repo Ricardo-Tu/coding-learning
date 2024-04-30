@@ -6,6 +6,7 @@ namespace toy2d
     std::unique_ptr<Swapchain> Context::swapchain_ = nullptr;
     std::unique_ptr<RenderProcess> Context::renderprocess_ = nullptr;
     std::unique_ptr<render> Context::render_ = nullptr;
+    std::unique_ptr<texture> Context::texture_ = nullptr;
 
     void Context::Init(std::vector<const char *> extensions, std::function<vk::SurfaceKHR(vk::Instance)> retsurface)
     {

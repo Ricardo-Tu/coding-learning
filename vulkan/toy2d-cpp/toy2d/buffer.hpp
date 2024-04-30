@@ -9,7 +9,7 @@ namespace toy2d
         gpuBuffer(vk::BufferUsageFlags usage, vk::DeviceSize size, vk::MemoryPropertyFlags properties);
         ~gpuBuffer();
         void *map;
-        vk::gpuBuffer vkbufferRegion;
+        vk::Buffer vkbufferRegion;
         void createBuffer();
         void allocateMemory();
         void copyData();

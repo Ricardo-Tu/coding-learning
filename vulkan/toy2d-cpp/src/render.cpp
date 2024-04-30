@@ -107,7 +107,7 @@ namespace toy2d
                 cmdbuffer_[currentFrame_].setScissor(0, scissor);
                 cmdbuffer_[currentFrame_].bindIndexBuffer(Context::GetInstance().renderprocess_->indexBuffer, 0, vk::IndexType::eUint32);
                 cmdbuffer_[currentFrame_].bindVertexBuffers(0, {Context::GetInstance().renderprocess_->gpuVertexBuffer}, {0});
-                cmdbuffer_[currentFrame_].bindDescriptorSets(vk::PipelineBindPoint::eGraphics, Context::GetInstance().renderprocess_->pipelineLayout, 0, Context::GetInstance().renderprocess_->descriptorSets[currentFrame_], {});
+                cmdbuffer_[currentFrame_].bindDescriptorSets(vk::PipelineBindPoint::eGraphics, Context::GetInstance().renderprocess_->pipelineLayout, 0, Context::GetInstance().texture_->descriptorSets[currentFrame_], {});
                 cmdbuffer_[currentFrame_].drawIndexed(indices.size(), 1, 0, 0, 0);
             }
             cmdbuffer_[currentFrame_].endRenderPass();
@@ -154,13 +154,13 @@ namespace toy2d
             .setAddressModeU(vk::SamplerAddressMode::eRepeat)
             .setAddressModeV(vk::SamplerAddressMode::eRepeat)
             .setAddressModeW(vk::SamplerAddressMode::eRepeat)
-            .setAnisotropyEnable(vk::False)
+            .setAnisotropyEnable(vk::True)
             .setBorderColor(vk::BorderColor::eIntOpaqueBlack)
             .setUnnormalizedCoordinates(vk::False)
             .setCompareEnable(vk::False)
             .setMipmapMode(vk::SamplerMipmapMode::eLinear);
 
-        Context::GetInstance().sampler = Context::GetInstance().logicaldevice.createSampler(samplerInfo);
+        Context::GetInstance().texture_->sampler = Context::GetInstance().logicaldevice.createSampler(samplerInfo);
     }
 
     render::render(uint32_t maxFramesCount_) : maxFramesCount_(maxFramesCount_), currentFrame_(0)
