@@ -19,6 +19,7 @@ namespace toy2d
         Context::GetInstance().logicaldevice.destroyPipelineLayout(renderprocess_->pipelineLayout);
         Context::GetInstance().logicaldevice.destroyDescriptorSetLayout(renderprocess_->descriptorSetLayouts[0]);
         Context::GetInstance().logicaldevice.destroyDescriptorPool(renderprocess_->descriptorPool);
+        Context::GetInstance().logicaldevice.destroyDescriptorPool(texture_->descriptorPool);
         Context::GetInstance().logicaldevice.destroyRenderPass(renderprocess_->renderPass);
         Context::GetInstance().logicaldevice.destroyBuffer(renderprocess_->indexBuffer);
         Context::GetInstance().logicaldevice.destroyBuffer(renderprocess_->hostVertexBuffer);
@@ -30,6 +31,7 @@ namespace toy2d
         Context::GetInstance().logicaldevice.freeMemory(renderprocess_->indexBufferMemory);
         for (auto &hostUniformBufferMemory : renderprocess_->hostUniformBufferMemory)
             Context::GetInstance().logicaldevice.freeMemory(hostUniformBufferMemory);
+        texture_.reset();
         render_.reset();
         swapchain_.reset();
         instance_.reset();
@@ -124,6 +126,7 @@ namespace toy2d
                 .setPQueuePriorities(&priority);
             queueCreateInfos.push_back(queueCreateInfo);
         }
+        deviceFeatures.setSamplerAnisotropy(vk::True);
         devicecreateinfo.setQueueCreateInfos(queueCreateInfos)
             .setPEnabledFeatures(&deviceFeatures)
             .setPEnabledExtensionNames(deviceExtensions);

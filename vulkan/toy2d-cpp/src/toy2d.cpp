@@ -25,7 +25,7 @@ namespace toy2d
         Context::GetInstance().renderprocess_->InitRenderPassLayout();
         Context::GetInstance().swapchain_->createFramebuffers();
         Context::GetInstance().renderprocess_->InitPipeline();
-        Context::GetInstance().render_.reset(new render());
+        Context::GetInstance().render_.reset(new render(2));
         Context::GetInstance().renderprocess_->CreateVertexBuffer();
         Context::GetInstance().renderprocess_->CreateIndexBuffer();
         Context::GetInstance().texture_.reset(new texture("./texture.jpg", Context::GetInstance().renderprocess_->maxFramesCount_));

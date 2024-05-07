@@ -12,7 +12,7 @@ namespace toy2d
     {
         glm::vec3 pos;
         glm::vec3 color;
-        glm::vec2 texCoord;
+        glm::vec3 texCoord;
     };
     struct MVP
     {

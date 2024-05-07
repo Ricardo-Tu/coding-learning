@@ -66,11 +66,14 @@ namespace toy2d
                 .setLevelCount(1)
                 .setBaseMipLevel(0)
                 .setAspectMask(vk::ImageAspectFlagBits::eColor);
+
             barrier.setImage(image)
+                .setSrcAccessMask(vk::AccessFlagBits::eNone)
+                .setDstAccessMask(vk::AccessFlagBits::eTransferWrite)
                 .setOldLayout(vk::ImageLayout::eUndefined)
                 .setNewLayout(vk::ImageLayout::eTransferDstOptimal)
-                .setDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
                 .setSrcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
+                .setDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
                 .setSubresourceRange(range);
             cmdbuf.pipelineBarrier(vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eTransfer, {}, {}, nullptr, barrier);
         }
@@ -97,7 +100,7 @@ namespace toy2d
                 .setLayerCount(1);
             region.setBufferImageHeight(0)
                 .setBufferOffset(0)
-                .setImageOffset(0)
+                .setImageOffset({0, 0, 0})
                 .setImageExtent(vk::Extent3D(width, height, 1))
                 .setBufferRowLength(0)
                 .setImageSubresource(subsource);
@@ -126,6 +129,8 @@ namespace toy2d
                 .setBaseMipLevel(0)
                 .setAspectMask(vk::ImageAspectFlagBits::eColor);
             barrier.setImage(image)
+                .setSrcAccessMask(vk::AccessFlagBits::eTransferWrite)
+                .setDstAccessMask(vk::AccessFlagBits::eShaderRead)
                 .setOldLayout(vk::ImageLayout::eTransferDstOptimal)
                 .setNewLayout(vk::ImageLayout::eShaderReadOnlyOptimal)
                 .setDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
@@ -171,8 +176,8 @@ namespace toy2d
             .setAddressModeU(vk::SamplerAddressMode::eRepeat)
             .setAddressModeV(vk::SamplerAddressMode::eRepeat)
             .setAddressModeW(vk::SamplerAddressMode::eRepeat)
-            .setAnisotropyEnable(vk::False)
-            // .setMaxAnisotropy(properties.limits.maxSamplerAnisotropy)
+            .setAnisotropyEnable(vk::True)
+            .setMaxAnisotropy(properties.limits.maxSamplerAnisotropy)
             .setBorderColor(vk::BorderColor::eFloatOpaqueBlack)
             .setUnnormalizedCoordinates(vk::False)
             .setCompareEnable(vk::False)
@@ -233,27 +238,26 @@ namespace toy2d
 
     texture::texture(std::string filename, uint32_t maxFrameCount) : maxFrameCount_(maxFrameCount)
     {
-        int32_t width, height, channel;
-        stbi_uc *pixels = stbi_load((const char *)(filename.data()), &width, &height, &channel, STBI_rgb_alpha);
-        vk::DeviceSize imagesize = width * height * 4;
+        int32_t texWidth, texHeight, texChannel;
+        stbi_uc *pixels = stbi_load((const char *)(filename.data()), &texWidth, &texHeight, &texChannel, STBI_rgb_alpha);
+        vk::DeviceSize imagesize = texWidth * texHeight * 4;
         if (!pixels)
         {
             throw std::runtime_error("failed to load texture image");
         }
 
         vk::Buffer stagebuf = Context::GetInstance().renderprocess_->CreateVkBuffer(imagesize, vk::BufferUsageFlagBits::eTransferSrc);
-        vk::DeviceMemory stagebufmemory = Context::GetInstance().renderprocess_->CreateDeviceMemory(stagebuf, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostVisible);
+        vk::DeviceMemory stagebufmemory = Context::GetInstance().renderprocess_->CreateDeviceMemory(stagebuf, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
         Context::GetInstance().logicaldevice.bindBufferMemory(stagebuf, stagebufmemory, 0);
         void *ptrstagebuf = Context::GetInstance().logicaldevice.mapMemory(stagebufmemory, 0, imagesize);
         memcpy(ptrstagebuf, pixels, imagesize);
 
-        createTextureImage(width, height);
+        createTextureImage(texWidth, texHeight);
+        allocateMemory();
         createImageView();
 
-        allocateMemory();
-
         transitionImageLayoutFromUndefine2Dst();
-        transformBufferdata2Image(stagebuf, width, height);
+        transformBufferdata2Image(stagebuf, texWidth, texHeight);
         transitionimageLayoutFromDst2Optimal();
 
         generateTextureMipMap();
@@ -266,6 +270,9 @@ namespace toy2d
     texture::~texture()
     {
         vk::Device logicaldevice = Context::GetInstance().logicaldevice;
+        logicaldevice.destroyImage(image);
         logicaldevice.destroyImageView(imageView);
+        logicaldevice.destroySampler(sampler);
+        logicaldevice.freeMemory(imageMemory);
     }
 }
