@@ -3,6 +3,13 @@
 #include <string>
 #include <vulkan/vulkan.hpp>
 #include <string_view>
+#include <unordered_map>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/hash.hpp>
+#include <tiny_obj_loader.h>
+
+#include "renderprocess.hpp"
 
 namespace toy2d
 {
@@ -27,8 +34,18 @@ namespace toy2d
         void transitionimageLayoutFromDst2Optimal();
         void createDescriptorPool();
         void createDescriptorSets();
+        void InitModel();
         uint32_t maxFrameCount_ = 2;
 
     private:
+    };
+}
+
+namespace std {
+    template<> struct hash<toy2d::Vertex> {
+        size_t operator()(toy2d::Vertex const& vertex) const
+        {
+            return ((hash<glm::vec3>()(vertex.pos) ^ (hash<glm::vec3>()(vertex.color) << 1)) >> 1) ^ (hash<glm::vec2>()(vertex.texCoord) << 1);
+        }
     };
 }

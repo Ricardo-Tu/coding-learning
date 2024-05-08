@@ -21,6 +21,7 @@ aux_source_directory(src SRC)
 add_library(toy2d STATIC ${SRC})
 target_include_directories(toy2d PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 target_link_libraries(toy2d PUBLIC Vulkan::Vulkan)
+target_link_libraries(toy2d PUBLIC tinyobjloader::tinyobjloader)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 target_compile_features(toy2d PUBLIC cxx_std_17)
 

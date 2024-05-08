@@ -12,7 +12,11 @@ namespace toy2d
     {
         glm::vec3 pos;
         glm::vec3 color;
-        glm::vec3 texCoord;
+        glm::vec2 texCoord;
+        bool operator==(const Vertex &other) const
+        {
+            return pos == other.pos && color == other.color && texCoord == other.texCoord;
+        }
     };
     struct MVP
     {
@@ -57,5 +61,6 @@ namespace toy2d
     private:
     };
     extern MVP mvp;
+    extern std::vector<Vertex> vertices;
     extern std::vector<uint32_t> indices;
 }
