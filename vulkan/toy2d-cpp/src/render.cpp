@@ -38,7 +38,7 @@ namespace toy2d
         mvp.project = glm::perspective(glm::radians(45.0f), (float)Context::GetInstance().swapchain_->swapchaininfo.extent.width / (float)Context::GetInstance().swapchain_->swapchaininfo.extent.height, 0.1f, 10.0f);
         // mvp.model[1][1] *= -2;
         // mvp.view[1][1] *= 2;
-        mvp.project[1][1] *= 1;
+        mvp.project[1][1] *= -1;
 
         memcpy(Context::GetInstance().renderprocess_->hostUniformBufferMemoryPtr[CurrentUniformBufIndex], &mvp, sizeof(MVP));
     }
