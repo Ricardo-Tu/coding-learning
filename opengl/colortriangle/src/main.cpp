@@ -7,6 +7,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
 #include <chrono>
+#include <sys/time.h>
 
 #include "../colortriangle/utils.hpp"
 
@@ -40,53 +41,16 @@ std::vector<Vertex> basevertex = {
     {{600, 400, 0}, {1, 1, 1, 1}}};
 
 std::vector<Vertex> vertex = {
-    {{200, 200, 0}, {1, 0, 0, 1}},
-    {{600, 200, 0}, {0, 1, 0, 1}},
-    {{600, 400, 0}, {0, 0, 1, 1}},
-    {{200, 200, 0}, {0, 1, 0, 1}},
-    {{200, 400, 0}, {0, 0, 1, 1}},
-    {{600, 400, 0}, {1, 1, 1, 1}}};
+    {{-10, -10, 0}, {1, 0, 0, 1}},
+    {{10, -10, 0}, {0, 1, 0, 1}},
+    {{10, 10, 0}, {0, 0, 1, 1}},
+    {{-10, -10, 0}, {1, 0, 0, 1}},
+    {{-10, 10, 0}, {0, 1, 0, 1}},
+    {{10, 10, 0}, {0, 0, 1, 1}}};
 
 GLuint indics[] = {0, 1, 2, 0, 4, 5};
 
-typedef float t_mat4x4[16];
 void UpdateUniformBuffer();
-
-static inline void mat4x4_ortho(t_mat4x4 out, float left, float right, float bottom, float top, float znear, float zfar)
-{
-#define T(a, b) (a * 4 + b)
-
-    out[T(0, 0)] = 2.0f / (right - left);
-    out[T(0, 1)] = 0.0f;
-    out[T(0, 2)] = 0.0f;
-    out[T(0, 3)] = 0.0f;
-
-    out[T(1, 1)] = 2.0f / (top - bottom);
-    out[T(1, 0)] = 0.0f;
-    out[T(1, 2)] = 0.0f;
-    out[T(1, 3)] = 0.0f;
-
-    out[T(2, 2)] = -2.0f / (zfar - znear);
-    out[T(2, 0)] = 0.0f;
-    out[T(2, 1)] = 0.0f;
-    out[T(2, 3)] = 0.0f;
-
-    out[T(3, 0)] = -(right + left) / (right - left);
-    out[T(3, 1)] = -(top + bottom) / (top - bottom);
-    out[T(3, 2)] = -(zfar + znear) / (zfar - znear);
-    out[T(3, 3)] = 1.0f;
-    
-    for(int i = 0; i < 4; i++)
-    {
-        for(int j = 0; j < 4; j++)
-        {
-            mvp.project[i][j] = out[T(i, j)];
-        }
-    }
-
-#undef T
-
-}
 
 int main(int argc, char *argv[])
 {
@@ -104,7 +68,11 @@ int main(int argc, char *argv[])
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-    SDL_Window *window = SDL_CreateWindow("", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, gWinWidth, gWinHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+    SDL_Window *window = SDL_CreateWindow("color_triangle",
+                                          SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                                          WINDOW_WIDTH, WINDOW_HEIGHT,
+                                          SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
+
     SDL_GLContext context = SDL_GL_CreateContext(window);
 
     GLuint vs, fs, program;
@@ -165,7 +133,7 @@ int main(int argc, char *argv[])
     glBufferData(GL_UNIFORM_BUFFER, sizeof(MVP), NULL, GL_STATIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
     const auto vpIndex = glGetUniformBlockIndex(program, "ubo"); // 获取着色器中的 uniform 缓冲对象位置索引
-    glUniformBlockBinding(program, vpIndex, 0);         // 将其绑定到 0 绑定点
+    glUniformBlockBinding(program, vpIndex, 0);                  // 将其绑定到 0 绑定点
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, uboBlock);
 
     glBindVertexArray(vao);
@@ -181,13 +149,18 @@ int main(int argc, char *argv[])
     glBufferData(GL_ARRAY_BUFFER, vertex.size() * sizeof(Vertex), vertex.data(), GL_DYNAMIC_DRAW);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indics), indics, GL_STATIC_DRAW);
 
-    t_mat4x4 projection_matrix;
-    mat4x4_ortho(projection_matrix, 0.0f, (float)gWinWidth, (float)gWinHeight, 0.0f, 0.0f, 100.0f);
-    glUniformMatrix4fv(glGetUniformLocation(program, "u_projection_matrix"), 1, GL_FALSE, projection_matrix);
-
     SDL_Event event;
+    struct timeval t1, t2;
+    struct timezone tz;
+    float deltatime;
+    float totaltime = 0.0f;
+    uint32_t frames = 0;
+    gettimeofday(&t1, &tz);
     while (!isquit)
     {
+        gettimeofday(&t2, &tz);
+        deltatime = (float)(t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec) * 1e-6);
+        t1 = t2;
         while (SDL_PollEvent(&event))
         {
             if (event.type == SDL_QUIT)
@@ -217,7 +190,14 @@ int main(int argc, char *argv[])
         glBindVertexArray(vao);
         glDrawElements(GL_TRIANGLES, sizeof(indics), GL_UNSIGNED_INT, 0);
         SDL_GL_SwapWindow(window);
-        SDL_Delay(1);
+        totaltime += deltatime;
+        frames++;
+        if (totaltime > 2.0f)
+        {
+            SDL_Log("%4d frames rendered in %1.4f seconds -> FPS=[%3.4f]\n", frames, totaltime, frames / totaltime);
+            totaltime = 0.0f;
+            frames = 0;
+        }
     }
     SDL_GL_DeleteContext(context);
     SDL_DestroyWindow(window);
@@ -233,28 +213,9 @@ void UpdateUniformBuffer()
     float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
     mvp.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    mvp.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    // mvp.project = glm::perspective(glm::radians(45.0f), (float)gWinWidth / (float)gWinHeight, 0.1f, 10.0f);
+    mvp.view = glm::lookAt(glm::vec3(40.0f, 40.0f, 40.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    mvp.project = glm::perspective(glm::radians(45.0f), (float)gWinWidth / (float)gWinHeight, 0.1f, 100.0f);
     // mvp.model[1][1] *= -2;
     // mvp.view[1][1] *= 2;
-    // mvp.project[1][1] *= 1;
-    // mvp.project[0][0] = 2.0f / (gWinWidth - 0);
-    // mvp.project[0][1] = 0.0f;
-    // mvp.project[0][2] = 0.0f;
-    // mvp.project[0][3] = 0.0f;
-
-    // mvp.project[1][1] = 2.0f / (0 - gWinHeight);
-    // mvp.project[1][0] = 0.0f;
-    // mvp.project[1][2] = 0.0f;
-    // mvp.project[1][3] = 0.0f;
-
-    // mvp.project[2][2] = -2.0f / (100.0f - 0);
-    // mvp.project[2][0] = 0.0f;
-    // mvp.project[2][1] = 0.0f;
-    // mvp.project[2][3] = 0.0f;
-
-    // mvp.project[3][0] = -(gWinWidth + 0) / (gWinWidth - 0);
-    // mvp.project[3][1] = -(0 + gWinHeight) / (0 - gWinHeight);
-    // mvp.project[3][2] = -(100.0f + 0) / (100.0f - 0);
-    // mvp.project[3][3] = 1.0f;
+    mvp.project[1][1] *= 1;
 }
