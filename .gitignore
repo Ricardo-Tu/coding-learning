@@ -4,3 +4,4 @@
 /vulkan/toy2d-cpp/.vscode
 /rust-vulkan/target
 /.vscode/
+/opengl/colortriangle/build
