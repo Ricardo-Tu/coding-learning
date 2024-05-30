@@ -5,3 +5,5 @@
 /rust-vulkan/target
 /.vscode/
 /opengl/colortriangle/build
+**/target/
+**/build/
