@@ -2,6 +2,7 @@
 #include <memory>
 #include <vulkan/vulkan.hpp>
 #include <SDL2/SDL.h>
+#include <functional>
 #include "tool.hpp"
 #include "render.hpp"
 namespace toy2d

@@ -42,8 +42,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": false,
-      "cwd": "/home/ubuntu/zhonghui/vulkan/coding-learning/vulkan/toy2d-cpp/src",
-      "program": "/home/ubuntu/zhonghui/vulkan/coding-learning/vulkan/toy2d-cpp/src/build/Debug/outDebug",
+      "cwd": "/home/ubuntu/zhonghui/vulkan/coding-learning/vulkan/little-vulkan-engine/src",
+      "program": "/home/ubuntu/zhonghui/vulkan/coding-learning/vulkan/little-vulkan-engine/src/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [

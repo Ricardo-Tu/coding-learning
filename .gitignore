@@ -1,10 +1,12 @@
 /rust-vulkan/.vscode
 /vulkan/toy2d-cpp/build
+/vulkan/toy2d-cpp/cmake/sandbox/
+/vulkan/toy2d-cpp/cmake/CMakeFiles/
 /vulkan/.vscode
 /vulkan/toy2d-cpp/.vscode
 /rust-vulkan/target
 /.vscode/
-/opengl/colortriangle/build
 **/target/
 **/build/
 **/resources/
+**/CMakeFiles/
