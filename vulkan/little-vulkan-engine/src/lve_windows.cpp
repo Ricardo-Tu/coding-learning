@@ -4,8 +4,9 @@ namespace lve
 {
     LveWindow::LveWindow(int width, int height, const std::string windowname) : width(width), height(height), windowname(windowname)
     {
-        if (SDL_Init(SDL_INIT_EVENTS) != 0)
+        if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
         {
+            std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
             throw std::runtime_error("SDL_Init Error: " + std::string(SDL_GetError()));
         }
 
@@ -14,10 +15,11 @@ namespace lve
                                   SDL_WINDOWPOS_CENTERED,
                                   width,
                                   height,
-                                  SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE );
+                                  SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN);
         if (window == nullptr)
         {
             SDL_Quit();
+            std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
             throw std::runtime_error("SDL_CreateWindow Error: " + std::string(SDL_GetError()));
         }
     }
@@ -29,6 +31,10 @@ namespace lve
     }
     void LveWindow::lveRun()
     {
+        SDL_Renderer *renderer;
+        renderer = SDL_CreateRenderer(window, -1, 0);
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+        SDL_RenderClear(renderer);
         while (!quitFlag)
         {
             if (SDL_PollEvent(&event))
@@ -42,6 +48,7 @@ namespace lve
                     std::cout << "Window resized to " << event.window.data1 << "x" << event.window.data2 << std::endl;
                 }
             }
+            SDL_RenderPresent(renderer);
         }
     }
 

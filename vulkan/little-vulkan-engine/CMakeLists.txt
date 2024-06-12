@@ -13,7 +13,9 @@ execute_process(COMMAND ${GLSLC_PROGRAM} ${CMAKE_SOURCE_DIR}/shader/shader.vert 
 execute_process(COMMAND ${GLSLC_PROGRAM} ${CMAKE_SOURCE_DIR}/shader/shader.frag -o ${CMAKE_SOURCE_DIR}/frag.spv)
 message(STATUS "compile shader OK")
 
-aux_source_directory(src SRC)
+# aux_source_directory(src SRC)
+file(GLOB SRC "src/*.cpp")
+list(REMOVE_ITEM SRC "src/main.cpp")
 
 add_library(lve STATIC ${SRC})
 target_include_directories(lve PUBLIC ${CMAKE_CURRENT_LIST_DIR})
