@@ -1,0 +1,22 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "request": "launch",
+      "name": "source-code-gdb-debug-sandbox",
+      "program": "${workspaceRoot}/build/sandbox/sandbox",
+      "type": "cppdbg",
+      "cwd": "${workspaceRoot}/src",
+      "sourceFileMap": {
+      },
+      "args": [],
+      "environment": [],
+      "externalConsole": false,
+      "logging": {
+        "engineLogging": false
+      },
+      "MIMode": "gdb",
+      "preLaunchTask": "rebuild-sandbox"
+    }
+  ]
+}

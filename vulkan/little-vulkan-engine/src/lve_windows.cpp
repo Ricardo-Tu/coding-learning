@@ -1,4 +1,8 @@
 #include "../lve/lve_windows.hpp"
+#include <SDL2/SDL_events.h>
+#include <SDL2/SDL_render.h>
+#include <SDL2/SDL_surface.h>
+#include <SDL2/SDL_video.h>
 
 namespace lve
 {
@@ -22,6 +26,8 @@ namespace lve
             std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
             throw std::runtime_error("SDL_CreateWindow Error: " + std::string(SDL_GetError()));
         }
+
+        renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     }
 
     LveWindow::~LveWindow()
@@ -31,35 +37,55 @@ namespace lve
     }
     void LveWindow::lveRun()
     {
-        SDL_Renderer *renderer;
-        renderer = SDL_CreateRenderer(window, -1, 0);
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-        SDL_RenderClear(renderer);
         while (!quitFlag)
         {
-            if (SDL_PollEvent(&event))
+            while (SDL_PollEvent(&event))
             {
-                if (event.type == SDL_QUIT)
+                switch (event.type)
                 {
+                case SDL_QUIT:
                     quitFlag = true;
+                    break;
+                case SDL_WINDOWEVENT:
+                    switch (event.window.event)
+                    {
+                    case SDL_WINDOWEVENT_RESIZED:
+                    case SDL_WINDOWEVENT_SIZE_CHANGED:
+                    case SDL_WINDOWEVENT_MAXIMIZED:
+                    case SDL_WINDOWEVENT_RESTORED:
+                    case SDL_WINDOWEVENT_MINIMIZED:
+                        std::cout << "Window resized to " << event.window.data1 << "x" << event.window.data2 << std::endl;
+                        ResizeWindow(&this->width, &this->height);
+                        renderColor(255, 0, 0, 255);
+                        break;
+                    default:
+                        break;
+                    }
+                    break;
+                default:
+                    break;
                 }
-                else if (event.type == SDL_WINDOWEVENT_RESIZED || event.type == SDL_WINDOWEVENT_SIZE_CHANGED || event.type == SDL_WINDOWEVENT_RESTORED)
-                {
-                    std::cout << "Window resized to " << event.window.data1 << "x" << event.window.data2 << std::endl;
-                }
+                renderColor(255, 0, 0, 255);
             }
-            SDL_RenderPresent(renderer);
         }
     }
 
-    void LveWindow::GetWIndowSize(uint32_t &width, uint32_t &height)
+    void LveWindow::renderColor(uint32_t r, uint32_t g, uint32_t b, uint32_t a)
     {
-        SDL_GetWindowSize(window, (int *)&width, (int *)&height);
+        SDL_SetRenderDrawColor(renderer, r, g, b, a);
+        SDL_RenderClear(renderer);
+        SDL_RenderPresent(renderer);
     }
 
-    App::App(uint32_t width, uint32_t height, const std::string windowname)
+    void LveWindow::ResizeWindow(uint32_t *pWidth, uint32_t *pHeight)
     {
-        lvewindow = new LveWindow(width, height, windowname);
+        SDL_GetWindowSize(window, (int *)pWidth, (int *)pHeight);
+        SDL_SetWindowSize(window, (int)*pWidth, (int)*pHeight);
+    }
+
+    App::App(uint32_t width, uint32_t height, const std::string WindowsName)
+    {
+        lvewindow = new LveWindow(width, height, WindowsName);
     }
 
     App::~App()

@@ -5,7 +5,6 @@
 /vulkan/.vscode
 /vulkan/toy2d-cpp/.vscode
 /rust-vulkan/target
-/.vscode/
 *.spv
 **/target/
 **/build/
